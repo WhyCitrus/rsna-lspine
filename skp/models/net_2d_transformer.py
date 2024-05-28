@@ -47,7 +47,7 @@ class Net(nn.Module):
 
         self.transformer_head = nn.TransformerEncoderLayer(
             d_model=self.dim_feats,
-            nhead=cfg.transformer_nhead,
+            nhead=cfg.transformer_nhead or 16,
             dim_feedforward=self.dim_feats * 4,
             dropout=cfg.transformer_dropout or 0.1,
             activation=cfg.transformer_activation or "gelu",
@@ -71,6 +71,10 @@ class Net(nn.Module):
 
         if self.cfg.freeze_backbone:
             self.freeze_backbone()
+
+        for module in self.backbone.modules():
+            if isinstance(module, nn.SiLU):
+                module.inplace = False
 
     def normalize(self, x):
         if self.cfg.normalization == "-1_1":
@@ -105,15 +109,21 @@ class Net(nn.Module):
             assert isinstance(y, torch.Tensor)
 
         x = self.normalize(x) 
-
         # x.shape = (B, C, Z, H, W)
         B, C, Z, H, W = x.shape
-        # x = x.reshape(B*Z, C, H, W)
+        x = x.reshape(B*Z, C, H, W)
 
         if hasattr(self, "feat_reduce"):
-            features = torch.stack([self.feat_reduce(self.pooling(self.backbone(x[:, :, each_z])).unsqueeze(-1)).squeeze(-1) for each_z in range(Z)], dim=1) 
+            # features = torch.stack([self.feat_reduce(self.pooling(self.backbone(x[:, :, each_z])).unsqueeze(-1)).squeeze(-1) for each_z in range(Z)], dim=1) 
+            features = self.backbone(x)
+            features = self.pooling(features).unsqueeze(-1)
+            features = self.feat_reduce(features).squeeze(-1)
+            # features = self.feat_reduce(self.pooling(self.backbone(x)))
+            features = features.reshape(B, Z, -1)
         else:
-            features = torch.stack([self.pooling(self.backbone(x[:, :, each_z])) for each_z in range(Z)], dim=1) 
+            features = self.backbone(x)
+            features = self.pooling(features)
+            features = features.reshape(B, Z, -1)
 
         features = self.transformer_head(features[:, 0])
 

@@ -102,7 +102,9 @@ def load_config(args, overwrite_args):
                     cfg.__dict__[key] = cfg_type(overwrite_args[key])
         else:
             raise Exception(f"{key} is not specified in config")
-
+    if isinstance(cfg.load_pretrained_backbone, list):
+        cfg.load_pretrained_backbone = cfg.load_pretrained_backbone[cfg.fold]
+    
     return cfg, args
 
 

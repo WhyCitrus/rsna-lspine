@@ -49,5 +49,6 @@ for series_id, series_df in foramina_df.groupby("series_id"):
 
 new_df = pd.concat(new_df_list).reset_index(drop=True)
 new_df["series_folder"] = new_df.study_id.astype("str") + "/" + new_df.series_id.astype("str")
-new_df = create_double_cv(new_df, "study_id", 5, 5)
+folds_df = pd.read_csv("../../data/folds_cv5.csv")
+new_df = new_df.merge(folds_df, on="study_id")
 new_df.to_csv("../../data/train_to_test_predicting_sagittal_foramina_coords_kfold.csv", index=False)

@@ -26,9 +26,9 @@ for series_id, series_df in foramina_df.groupby("series_id"):
     series_df = series_df.sort_values(["condition", "level"])
     tmp_df1 = series_df[["study_id", "series_id", "instance_number"]].iloc[:5].drop_duplicates().reset_index(drop=True)
     tmp_df2 = series_df[["study_id", "series_id", "instance_number"]].iloc[5:].drop_duplicates().reset_index(drop=True)
-    coords1 = series_df.iloc[:5].x.tolist() + series_df.iloc[:5].y.tolist()
+    coords1 = series_df.iloc[:5].rel_x.tolist() + series_df.iloc[:5].rel_y.tolist()
     coords1 = pd.DataFrame(np.repeat(np.expand_dims(np.asarray(coords1), axis=0), len(tmp_df1), axis=0))
-    coords2 = series_df.iloc[5:].x.tolist() + series_df.iloc[5:].y.tolist()
+    coords2 = series_df.iloc[5:].rel_x.tolist() + series_df.iloc[5:].rel_y.tolist()
     coords2 = pd.DataFrame(np.repeat(np.expand_dims(np.asarray(coords2), axis=0), len(tmp_df2), axis=0))
     coords1.columns = col_names
     coords2.columns = col_names
@@ -38,3 +38,7 @@ for series_id, series_df in foramina_df.groupby("series_id"):
     df_list.append(tmp_df)
 
 df = pd.concat(df_list)
+folds_df = pd.read_csv("../../data/folds_cv5.csv")
+df = df.merge(folds_df, on="study_id")
+df["filepath"] = df.study_id.astype("str") + "/" + df.series_id.astype("str") + "/" + df.instance_number.apply(lambda x: f"IM{x:06d}.png")
+df.to_csv("../../data/train_sagittal_foramina_coords_2d_slices.csv", index=False)
