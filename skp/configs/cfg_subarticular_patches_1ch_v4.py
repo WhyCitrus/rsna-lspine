@@ -15,30 +15,29 @@ cfg.task = "classification"
 cfg.model = "net_2d"
 cfg.backbone = "tf_efficientnetv2_s"
 cfg.pretrained = True
-cfg.num_input_channels = 3
+cfg.num_input_channels = 1
 cfg.pool = "gem"
 cfg.pool_params = dict(p=3)
 cfg.reduce_feat_dim = 256
 cfg.dropout = 0.5
-cfg.num_classes = 6
+cfg.num_classes = 3
 
 cfg.normalization = "-1_1"
 cfg.normalization_params = {"min": 0, "max": 255}
 
 cfg.fold = 0 
 cfg.dataset = "simple_2d"
-cfg.data_dir = "/home/ian/projects/rsna-lspine/data/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_combined_areas_crops.csv"
+cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_axial_subarticular_crops_1ch_v4/"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_subarticular_crops_v3.csv"
 cfg.inputs = "filepath"
-cfg.targets = ["normal_mild", "moderate", "severe", "canal", "subarticular", "foramen"]
-cfg.cv2_load_flag = cv2.IMREAD_COLOR
+cfg.targets = ["normal_mild", "moderate", "severe"]
+cfg.cv2_load_flag = cv2.IMREAD_GRAYSCALE
 cfg.num_workers = 14
 cfg.pin_memory = True
-cfg.channel_reverse = True
 # cfg.sampler = "IterationBasedSampler"
 # cfg.num_iterations_per_epoch = 10000
 
-cfg.loss = "WeightedLogLossWithArea"
+cfg.loss = "WeightedLogLoss"
 cfg.loss_params = {}
 
 cfg.batch_size = 32
@@ -51,8 +50,8 @@ cfg.scheduler_params = {"eta_min": 0}
 cfg.scheduler_interval = "step"
 
 cfg.val_batch_size = cfg.batch_size * 2
-cfg.metrics = ["CompetitionMetricIgnoreAreas", "AUROC"]
-cfg.val_metric = "comp_loss"
+cfg.metrics = ["AUROC"]
+cfg.val_metric = "loss"
 cfg.val_track = "min"
 
 # Avoid changing image dimensions via command line args

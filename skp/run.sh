@@ -46,6 +46,12 @@ ts --gpus 2 python train.py cfg_predict_sagittal_canal_coords --sync_batchnorm -
 ts --gpus 2 python train.py cfg_predict_sagittal_canal_coords --sync_batchnorm --benchmark --fold 4
 
 
+ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 4
+
 
 rsync -raz --progress -e 'ssh -p 26934' ian@3.tcp.ngrok.io:/home/ian/projects/rsna-lspine/data/train_sagittal_canal_crops .
 rsync -raz --progress -e 'ssh -p 26934' ian@3.tcp.ngrok.io:/home/ian/projects/rsna-lspine/data/train_pngs/2773343225 .
@@ -56,11 +62,41 @@ rsync -raz --progress -e 'ssh -p 26934' ian@3.tcp.ngrok.io:/home/ian/projects/rs
 rsync -raz --progress -e 'ssh -p 26934' ian@3.tcp.ngrok.io:/home/ian/projects/rsna-lspine/data/train_pngs/2507107985 .
 
 
-ts --gpus 2 python train.py cfg_combined_areas_patches --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+ts --gpus 2 python train.py cfg_foramina_3d_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 
+python train.py cfg0_gen_subarticular_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_gen_foraminal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_gen_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_gt_subarticular_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_gt_foraminal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_gt_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 
-ts --gpus 2 python train.py cfg_combined_areas_patches --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg_combined_areas_patches --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg_combined_areas_patches --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg_combined_areas_patches --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg_combined_areas_patches --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg_foramina_3d_crops --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg_foramina_3d_crops --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg_foramina_3d_crops --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg_foramina_3d_crops --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg_foramina_3d_crops --sync_batchnorm --benchmark --fold 4
+
+ts --gpus 2 python train.py cfg_axial_subarticular_slice_identifier_with_level_seqmodel --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+ts --gpus 2 python train.py cfg_subarticular_patches_1ch_v4--sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg_subarticular_patches_v6 --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+ts --gpus 2 python train.py cfg_subarticular_patches_v3 --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg_subarticular_patches_v3 --sync_batchnorm --benchmark --fold 4
+
+ts --gpus 2 python train.py cfg_subarticular_patches_v6 --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg_subarticular_patches_v6 --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg_subarticular_patches_v6 --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg_subarticular_patches_v6 --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg_subarticular_patches_v6 --sync_batchnorm --benchmark --fold 4
+
+ts --gpus 2 python train.py cfg_subarticular_patches_v5 --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg_subarticular_patches_v5 --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg_subarticular_patches_v5 --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg_subarticular_patches_v5 --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg_subarticular_patches_v5 --sync_batchnorm --benchmark --fold 4
+
+ts --gpus 2 python train.py cfg_identify_subarticular_slices_with_level --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg_identify_subarticular_slices_with_level --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg_identify_subarticular_slices_with_level --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg_identify_subarticular_slices_with_level --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg_identify_subarticular_slices_with_level --sync_batchnorm --benchmark --fold 4

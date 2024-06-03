@@ -77,6 +77,22 @@ class AUROC(_ScoreBased):
     def metric_func(self, t, p): return _roc_auc_score(t, p)
 
 
+class AUROCFlatten(_BaseMetric):
+
+    def compute(self):
+        p = torch.cat(self.p, dim=0).cpu() # (N, seq_len, C)
+        t = torch.cat(self.t, dim=0).cpu() # (N, seq_len, C)
+        p, t = p.view(-1, p.shape[-1]).numpy(), t.view(-1, t.shape[-1]).numpy()
+        metrics_dict = {}
+        for c in range(p.shape[1]):
+            # Depends on whether it is multilabel or multiclass
+            # If multiclass using CE loss, p.shape[1] = num_classes and t.shape[1] = 1
+            tmp_gt = t == c if t.shape[1] != p.shape[1] else t[:, c]
+            metrics_dict[f"auc_{c}"] = _roc_auc_score(tmp_gt, p[:, c])
+        metrics_dict[f"auc_mean"] = np.mean([v for v in metrics_dict.values()])
+        return metrics_dict
+
+
 class AVP(_ScoreBased):
 
     name = "avp"

@@ -18,7 +18,6 @@ cfg.pretrained = True
 cfg.num_input_channels = 1
 cfg.pool = "gem"
 cfg.pool_params = dict(p=3)
-cfg.reduce_feat_dim = 256
 cfg.z_strides = [2, 1, 1, 1, 1]
 cfg.dropout = 0.5
 cfg.num_classes = 30

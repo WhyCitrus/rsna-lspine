@@ -34,6 +34,7 @@ cfg.targets = ["normal_mild", "moderate", "severe"]
 cfg.cv2_load_flag = cv2.IMREAD_COLOR
 cfg.num_workers = 14
 cfg.pin_memory = True
+cfg.channel_reverse = True
 # cfg.sampler = "IterationBasedSampler"
 # cfg.num_iterations_per_epoch = 10000
 

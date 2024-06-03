@@ -20,19 +20,22 @@ cfg.pool = "gem"
 cfg.pool_params = dict(p=3)
 cfg.z_strides = [2, 1, 1, 1, 1]
 cfg.dropout = 0.5
-cfg.num_classes = 15
+cfg.num_classes = 30
 cfg.normalization = "-1_1"
 cfg.normalization_params = {"min": 0, "max": 255}
 
 cfg.fold = 0 
 cfg.dataset = "simple_lspine_3d_png"
 cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_pngs/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_to_test_predicting_sagittal_canal_coords_kfold.csv"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_to_test_predicting_axial_subarticular_coords_kfold.csv"
 cfg.inputs = "series_folder"
 cfg.targets = [
-    "canal_l1_l2_x", "canal_l2_l3_x", "canal_l3_l4_x", "canal_l4_l5_x", "canal_l5_s1_x",
-    "canal_l1_l2_y", "canal_l2_l3_y", "canal_l3_l4_y", "canal_l4_l5_y", "canal_l5_s1_y",
-    "canal_l1_l2_z", "canal_l2_l3_z", "canal_l3_l4_z", "canal_l4_l5_z", "canal_l5_s1_z"
+    "lt_subarticular_l1_l2_x", "lt_subarticular_l2_l3_x", "lt_subarticular_l3_l4_x", "lt_subarticular_l4_l5_x", "lt_subarticular_l5_s1_x",
+    "rt_subarticular_l1_l2_x", "rt_subarticular_l2_l3_x", "rt_subarticular_l3_l4_x", "rt_subarticular_l4_l5_x", "rt_subarticular_l5_s1_x",
+    "lt_subarticular_l1_l2_y", "lt_subarticular_l2_l3_y", "lt_subarticular_l3_l4_y", "lt_subarticular_l4_l5_y", "lt_subarticular_l5_s1_y",
+    "rt_subarticular_l1_l2_y", "rt_subarticular_l2_l3_y", "rt_subarticular_l3_l4_y", "rt_subarticular_l4_l5_y", "rt_subarticular_l5_s1_y",
+    "lt_subarticular_l1_l2_z", "lt_subarticular_l2_l3_z", "lt_subarticular_l3_l4_z", "lt_subarticular_l4_l5_z", "lt_subarticular_l5_s1_z",
+    "rt_subarticular_l1_l2_z", "rt_subarticular_l2_l3_z", "rt_subarticular_l3_l4_z", "rt_subarticular_l4_l5_z", "rt_subarticular_l5_s1_z"
 ]
 cfg.cv2_load_flag = cv2.IMREAD_GRAYSCALE
 cfg.num_workers = 2

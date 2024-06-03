@@ -47,6 +47,8 @@ class Dataset(TorchDataset):
         x = np.stack([cv2.imread(im, self.cfg.cv2_load_flag) for im in images], axis=0)
         if self.cfg.cv2_load_flag == cv2.IMREAD_GRAYSCALE:
             x = np.expand_dims(x, axis=-1)
+        if self.cfg.num_input_channels == 2:
+            x = x[..., :2]
         # channels-last -> channels-first
         x = torch.tensor(x.transpose(3, 0, 1, 2))
         return x
