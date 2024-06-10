@@ -60,6 +60,12 @@ class Dataset(TorchDataset):
         if self.cfg.channel_reverse and self.mode == "train" and bool(np.random.binomial(1, 0.5)):
             x = np.ascontiguousarray(x[:, :, ::-1])
 
+        if self.cfg.flip_lr and bool(np.random.binomial(1, 0.5)) and self.mode == "train":
+            # Mainly for training subarticular full slice model 
+            # If flip image then need to also flip the labels
+            x = np.fliplr(x)
+            y = y[[3, 4, 5, 0, 1, 2]]
+
         x = self.transforms(image=x)["image"]
 
         if x.ndim == 2:

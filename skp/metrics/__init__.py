@@ -2,6 +2,7 @@ import torchmetrics as tm
 
 from .classification import *
 from .segmentation import *
+from .detection import *
 
 
 class Dummy(tm.Metric):

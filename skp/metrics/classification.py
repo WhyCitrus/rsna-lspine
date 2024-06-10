@@ -88,7 +88,24 @@ class AUROCFlatten(_BaseMetric):
             # Depends on whether it is multilabel or multiclass
             # If multiclass using CE loss, p.shape[1] = num_classes and t.shape[1] = 1
             tmp_gt = t == c if t.shape[1] != p.shape[1] else t[:, c]
-            metrics_dict[f"auc_{c}"] = _roc_auc_score(tmp_gt, p[:, c])
+            metrics_dict[f"auc{c}"] = _roc_auc_score(tmp_gt, p[:, c])
+        metrics_dict[f"auc_mean"] = np.mean([v for v in metrics_dict.values()])
+        return metrics_dict
+
+
+class AUROCBilat(_BaseMetric):
+
+    def compute(self):
+        p = torch.cat(self.p, dim=0).cpu() # (N, 6)
+        t = torch.cat(self.t, dim=0).cpu() # (N, 6)
+        p = torch.cat([p[:, :3], p[:, 3:]], dim=0).numpy()
+        t = torch.cat([t[:, :3], t[:, 3:]], dim=0).numpy()
+        metrics_dict = {}
+        for c in range(p.shape[1]):
+            # Depends on whether it is multilabel or multiclass
+            # If multiclass using CE loss, p.shape[1] = num_classes and t.shape[1] = 1
+            tmp_gt = t == c if t.shape[1] != p.shape[1] else t[:, c]
+            metrics_dict[f"auc{c}"] = _roc_auc_score(tmp_gt, p[:, c])
         metrics_dict[f"auc_mean"] = np.mean([v for v in metrics_dict.values()])
         return metrics_dict
 
@@ -153,23 +170,23 @@ class MAE_CE(_BaseMetric):
 class CompetitionMetric(_BaseMetric):
 
     def compute(self):
-        p = torch.cat(self.p, dim=0).cpu() # (N, 3)
-        t = torch.cat(self.t, dim=0).cpu() # (N, 3)
-        wts = torch.tensor([1.0, 2.0, 4.0])
-        loss = F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none")
-        loss = wts * loss
-        loss = loss.mean().numpy()
-        return {"comp_loss": loss}
+        p = torch.cat(self.p, dim=0).cpu().sigmoid().numpy()
+        t = torch.cat(self.t, dim=0).cpu().numpy()
+        wts = np.ones((len(p), ))
+        wts[t[:, 1] == 1] = 2
+        wts[t[:, 2] == 1] = 4
+        return {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
 
 
-class CompetitionMetricIgnoreAreas(_BaseMetric):
+class CompetitionMetricBilat(_BaseMetric):
 
     def compute(self):
-        p = torch.cat(self.p, dim=0).cpu()[:, :3] # (N, 3)
-        t = torch.cat(self.t, dim=0).cpu()[:, :3] # (N, 3)
-        assert p.size(1) == t.size(1) == 3
-        wts = torch.tensor([1.0, 2.0, 4.0])
-        loss = F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none")
-        loss = wts * loss
-        loss = np.mean(loss.numpy())
-        return {"comp_loss": loss}
+        p = torch.cat(self.p, dim=0).cpu().sigmoid()
+        t = torch.cat(self.t, dim=0).cpu()
+        p = torch.cat([p[:, :3], p[:, 3:]], dim=0).numpy()
+        t = torch.cat([t[:, :3], t[:, 3:]], dim=0).numpy()
+        wts = np.ones((len(p), ))
+        wts[t[:, 1] == 1] = 2
+        wts[t[:, 2] == 1] = 4
+        return {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
+

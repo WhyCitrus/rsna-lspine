@@ -210,10 +210,10 @@ def main():
     print(f"  world_size={cfg.world_size}, num_nodes={args.num_nodes}, num_gpus={args.devices if args.devices else 1}")
     print("\n")
     
-
-    loss = get_loss(cfg)
     model = import_module(f"models.{cfg.model}").Net(cfg)
-    model.set_criterion(loss)
+    if not getattr(model, "has_loss", False):
+        loss = get_loss(cfg)
+        model.set_criterion(loss)
     ds_class = import_module(f"datasets.{cfg.dataset}").Dataset
     train_dataset = ds_class(cfg, "train")
     val_dataset = ds_class(cfg, "val")

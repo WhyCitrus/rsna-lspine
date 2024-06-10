@@ -10,36 +10,37 @@ cfg.neptune_mode = "async"
 cfg.save_dir = "experiments/"
 cfg.project = "gradientecho/rsna-lspine"
 
-cfg.task = "classification"
+cfg.task = "segmentation_2d_cls"
 
-cfg.model = "net_2d"
+cfg.model = "unet_2d_cls"
 cfg.backbone = "tf_efficientnetv2_s"
 cfg.pretrained = True
-cfg.num_input_channels = 3
+cfg.num_input_channels = 1
 cfg.pool = "gem"
 cfg.pool_params = dict(p=3)
-cfg.reduce_feat_dim = 256
-cfg.dropout = 0.5
-cfg.num_classes = 3
+cfg.seg_dropout = 0.5
+cfg.cls_dropout = 0.5
+cfg.seg_num_classes = 5
+cfg.cls_num_classes = 5
+cfg.decoder_channels = [256, 128, 64, 32, 16]
+cfg.decoder_n_blocks = 5
+cfg.decoder_norm_layer = "bn"
+cfg.decoder_attention_type = None
+cfg.decoder_center_block = False
 
 cfg.normalization = "-1_1"
 cfg.normalization_params = {"min": 0, "max": 255}
 
 cfg.fold = 0 
-cfg.dataset = "simple_2d_sample_weights"
-cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_generated_crops/subarticular/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_gen_subarticular_crops_kfold.csv"
-cfg.inputs = "filepath"
-cfg.targets = ["normal_mild", "moderate", "severe"]
-cfg.cv2_load_flag = cv2.IMREAD_COLOR
-cfg.num_workers = 14
+cfg.dataset = "foramen_seg_cls"
+cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_pngs/"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_foramen_seg_annotations.pkl"
+cfg.cv2_load_flag = cv2.IMREAD_GRAYSCALE
+cfg.num_workers = 10
 cfg.pin_memory = True
-cfg.channel_reverse = True
-# cfg.sampler = "IterationBasedSampler"
-# cfg.num_iterations_per_epoch = 10000
 
-cfg.loss = "SampleWeightedLogLoss"
-cfg.loss_params = {}
+cfg.loss = "BCELoss_SegCls"
+cfg.loss_params = {"pos_weight": 1000}
 
 cfg.batch_size = 32
 cfg.num_epochs = 10
@@ -51,14 +52,14 @@ cfg.scheduler_params = {"eta_min": 0}
 cfg.scheduler_interval = "step"
 
 cfg.val_batch_size = cfg.batch_size * 2
-cfg.metrics = ["AUROC", "CompetitionMetric"]
-cfg.val_metric = "loss"
-cfg.val_track = "min"
+cfg.metrics = ["AUROC"]
+cfg.val_metric = "auc_mean"
+cfg.val_track = "max"
 
 # Avoid changing image dimensions via command line args
 # if using these vars later (e.g., in crop transforms)
-cfg.image_height = 64
-cfg.image_width = 64
+cfg.image_height = 512
+cfg.image_width = 512
 
 cfg.train_transforms = A.Compose([
     A.Resize(cfg.image_height, cfg.image_width, p=1),

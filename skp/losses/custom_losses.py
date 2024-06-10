@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from monai.losses import DiceLoss
+from torchvision.ops import sigmoid_focal_loss
 
 
 class BCEWithLogitsLoss(nn.BCEWithLogitsLoss):
@@ -14,6 +15,17 @@ class BCEWithLogitsLoss(nn.BCEWithLogitsLoss):
 class SampleWeightedLogLoss(nn.BCEWithLogitsLoss):
 
     def forward(self, p, t, w):
+        return F.binary_cross_entropy_with_logits(p.float(), t.float(), weight=w.unsqueeze(1))
+
+
+class SampleWeightedLogLossBilat(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        p, t = torch.cat([p[:, :3], p[:, 3:]], dim=0), torch.cat([t[:, :3], t[:, 3:]], dim=0)
+        w = torch.ones((len(p), ))
+        w[t[:, 1] == 1] = 2.0
+        w[t[:, 2] == 1] = 4.0 
+        w = w.to(p.device)
         return F.binary_cross_entropy_with_logits(p.float(), t.float(), weight=w.unsqueeze(1))
 
 
@@ -100,3 +112,30 @@ class WeightedLogLossWithArea(nn.Module):
         loss = F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none")
         loss = self.wts.to(p.device) * loss
         return loss.mean()
+
+
+class BCELoss_SegCls(nn.Module):
+
+    def __init__(self, pos_weight=None):
+        super().__init__()
+        self.wts = torch.tensor([0.5, 0.5])
+        self.pos_weight = torch.tensor(pos_weight)
+
+    def forward(self, p_seg, p_cls, t_seg, t_cls):
+        segloss = F.binary_cross_entropy_with_logits(p_seg.float(), t_seg.float(), pos_weight=self.pos_weight)
+        clsloss = F.binary_cross_entropy_with_logits(p_cls.float(), t_cls.float())
+        loss = self.wts[0] * segloss + self.wts[1] * clsloss
+        return {"loss": loss, "seg_loss": segloss, "cls_loss": clsloss}
+
+
+class FocalBCELoss_SegCls(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+        self.wts = torch.tensor([0.5, 0.5])
+
+    def forward(self, p_seg, p_cls, t_seg, t_cls):
+        segloss = sigmoid_focal_loss(p_seg.float(), t_seg.float(), reduction="mean")
+        clsloss = F.binary_cross_entropy_with_logits(p_cls.float(), t_cls.float())
+        loss = self.wts[0] * segloss + self.wts[1] * clsloss
+        return loss
