@@ -104,3 +104,43 @@ class CenterDiffAbs(mAP_Simple):
         diff_dict["avg_x"] = np.mean([v for k, v in diff_dict.items() if "_x" in k])
         diff_dict["avg_y"] = np.mean([v for k, v in diff_dict.items() if "_y" in k])
         return diff_dict
+
+
+class CenterDiffAbsSubarticular(mAP_Simple):
+
+    def compute(self):
+        sides = ["lt", "rt"]
+        diff_dict = {f"{i}_x": [] for i in sides} 
+        diff_dict.update({f"{i}_y": [] for i in sides})
+
+        for big_tuple in zip(self.p_boxes, self.p_scores, self.p_labels, self.t_boxes, self.t_labels):
+            pi_box, pi_score, pi_label, ti_box, ti_label = [_.cpu().numpy() for _ in big_tuple]
+            for each_side in range(2):
+                if each_side not in ti_label:
+                    continue
+                else:
+                    tmp_gt = ti_box[ti_label == each_side]
+                    assert len(tmp_gt) == 1, f"tmp_gt is length {len(tmp_gt)}" # there should only ever be a max of 1 box for each level
+                    tmp_gt = tmp_gt[0]
+                    gt_xc, gt_yc = (tmp_gt[0] + tmp_gt[2]) / 2, (tmp_gt[1] + tmp_gt[3]) / 2
+                    # get predicted box with highest score at this level
+                    tmp_pred = pi_box[pi_label == each_side]
+                    if len(tmp_pred) == 0 or each_side not in pi_label:
+                        # basically assume (0, 0) center coord if no box predicted which is pretty harsh penalty, may need to adjust
+                        # but we compute median instead of mean so it should help mitigate outliers
+                        diff_dict[f"{sides[each_side]}_x"].append(gt_xc)
+                        diff_dict[f"{sides[each_side]}_y"].append(gt_yc)
+                        continue 
+                    tmp_pred = tmp_pred[0] # highest scored box, since they should be sorted in descending order by score
+                    # print(pi_box, pi_label, tmp_pred)
+                    assert tmp_gt.ndim == tmp_pred.ndim == 1, f"tmp_gt.ndim is {tmp_gt.ndim} and tmp_pred.ndim is {tmp_pred.ndim}"
+                    assert tmp_gt.shape[0] == tmp_pred.shape[0] == 4
+                    p_xc, p_yc = (tmp_pred[0] + tmp_pred[2]) / 2, (tmp_pred[1] + tmp_pred[3]) / 2
+                    diff_dict[f"{sides[each_side]}_x"].append(np.abs(gt_xc - p_xc))
+                    diff_dict[f"{sides[each_side]}_y"].append(np.abs(gt_yc - p_yc))
+        diff_dict = {k: np.median(v) for k, v in diff_dict.items()}
+        diff_dict["avg_diff"] = np.mean([v for v in diff_dict.values()])
+        diff_dict["avg_x"] = np.mean([v for k, v in diff_dict.items() if "_x" in k])
+        diff_dict["avg_y"] = np.mean([v for k, v in diff_dict.items() if "_y" in k])
+        return diff_dict
+
