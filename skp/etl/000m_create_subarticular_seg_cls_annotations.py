@@ -61,6 +61,15 @@ for each_series, series_df in df.groupby("series_id"):
 
 df = pd.concat(df_list)
 
+# Not exactly sure why 2 of them have values of -1 for L3 but we will just exclude them
+for lvl in abbrev_levels:
+    df = df.loc[df[lvl] != -1]
+
+df = df.reset_index(drop=True)
+
+# Add an S1 level so we can just take argmax over L1-S1 classes to assign the appropriate level
+df["S1"] = (df[["L1", "L2", "L3", "L4", "L5"]].sum(1) == 0).astype("int")
+
 df["rt_subarticular"] = df.rt_subarticular.fillna(0)
 df["lt_subarticular"] = df.lt_subarticular.fillna(0)
 df["filepath"] = df.study_id.astype("str") + "/" + df.series_id.astype("str") + "/" + df.instance_number.apply(lambda x: f"IM{x:06d}.png")
@@ -70,16 +79,17 @@ folds_dict = {row.study_id: row.fold for row in folds_df.itertuples()}
 
 annotations = []
 for row in df.itertuples():
-    rt_coords = [] if np.isnan(row.x_rt) or np.isnan(row.y_rt) else [row.x_rt, row.y_rt]
-    lt_coords = [] if np.isnan(row.x_lt) or np.isnan(row.y_lt) else [row.x_lt, row.y_lt]
-    if len(rt_coords) == 0 and len(lt_coords) == 0:
-        coords = np.zeros((0, 2))
-    else:
-        coords = np.vstack([_ for _ in [rt_coords, lt_coords] if len(_) == 2])
+    rt_coords = [] if np.isnan(row.x_rt) or np.isnan(row.y_rt) else np.asarray([row.x_rt, row.y_rt])
+    lt_coords = [] if np.isnan(row.x_lt) or np.isnan(row.y_lt) else np.asarray([row.x_lt, row.y_lt])
+    if len(rt_coords) == 0:
+        rt_coords = np.zeros((0,))
+    if len(lt_coords) == 0:
+        lt_coords = np.zeros((0,))    
     tmp_ann = {
         "filepath": row.filepath,
-        "coords": coords, 
-        "labels": np.asarray([row.rt_subarticular, row.lt_subarticular, row.L1, row.L2, row.L3, row.L4, row.L5]),
+        "rt_coords": rt_coords, 
+        "lt_coords": lt_coords,
+        "labels": np.asarray([row.rt_subarticular, row.lt_subarticular, row.L1, row.L2, row.L3, row.L4, row.L5, row.S1]),
         "fold": folds_dict[row.study_id]
     }
     annotations.append(tmp_ann)

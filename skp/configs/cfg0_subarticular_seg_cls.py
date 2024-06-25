@@ -20,8 +20,8 @@ cfg.pool = "gem"
 cfg.pool_params = dict(p=3)
 cfg.seg_dropout = 0.5
 cfg.cls_dropout = 0.5
-cfg.seg_num_classes = 1
-cfg.cls_num_classes = 7
+cfg.seg_num_classes = 2
+cfg.cls_num_classes = 8
 cfg.decoder_channels = [256, 128, 64, 32, 16]
 cfg.decoder_n_blocks = 5
 cfg.decoder_norm_layer = "bn"
@@ -58,8 +58,8 @@ cfg.val_track = "max"
 
 # Avoid changing image dimensions via command line args
 # if using these vars later (e.g., in crop transforms)
-cfg.image_height = 512
-cfg.image_width = 512
+cfg.image_height = 384
+cfg.image_width = 384
 
 cfg.train_transforms = A.Compose([
     A.Resize(cfg.image_height, cfg.image_width, p=1),

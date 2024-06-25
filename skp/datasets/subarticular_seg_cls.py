@@ -32,12 +32,14 @@ class Dataset(TorchDataset):
     
     @staticmethod
     def create_mask(ann, shape):
-        mask = np.zeros((shape[0], shape[1]))
-        if len(ann["coords"]) == 0:
-            return np.expand_dims(mask, axis=-1)
-        for c in ann["coords"]:
-            mask = cv2.ellipse(mask, (int(c[0]), int(c[1])), (int(0.025*shape[0]), int(0.025*shape[1])), 0, 0, 360, 1, -1)
-        return np.expand_dims(mask, axis=-1)
+        rt_mask = np.zeros((shape[0], shape[1]))
+        lt_mask = np.zeros_like(rt_mask)
+        if len(ann["rt_coords"]) > 0:
+            rt_mask = cv2.ellipse(rt_mask, (int(ann["rt_coords"][0]), int(ann["rt_coords"][1])), (int(0.025*shape[0]), int(0.025*shape[1])), 0, 0, 360, 1, -1)
+        if len(ann["lt_coords"]) > 0:
+            lt_mask = cv2.ellipse(lt_mask, (int(ann["lt_coords"][0]), int(ann["lt_coords"][1])), (int(0.025*shape[0]), int(0.025*shape[1])), 0, 0, 360, 1, -1)
+        mask = np.stack([rt_mask, lt_mask], axis=-1)
+        return mask
 
     def __getitem__(self, i):
         ann = self.annotations[i]
