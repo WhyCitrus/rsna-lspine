@@ -41,6 +41,8 @@ for fp, fp_df in tqdm(df.groupby("filepath"), total=len(df.filepath.unique())):
         # same
         fp_df = fp_df.iloc[:3]
     if 2 in fp_df.level.value_counts().tolist():
+        # there should only be max of one level per slice so if there are multiple
+        # then something is wrong
         break
     tmp_ann = {
         "filepath": fp,

@@ -136,9 +136,9 @@ class Net(nn.Module):
         if return_features:
             out["features"] = features 
         if return_loss: 
-            loss = self.criterion(logits, y)
+            loss = self.criterion(logits, y, w=batch["wts"]) if "wts" in batch else self.criterion(logits, y)
             out["loss"] = loss
-
+            
         return out
 
     def get_pool_layer(self):

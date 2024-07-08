@@ -40,4 +40,4 @@ df["sample_weight"] = 1
 df.loc[df.moderate == 1, "sample_weight"] = 2
 df.loc[df.severe == 1, "sample_weight"] = 4
 
-df.to_csv("../../data/train_wide.csv", index=False)
+df.to_csv("../../data/train_narrow.csv", index=False)

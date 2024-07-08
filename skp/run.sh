@@ -64,7 +64,7 @@ rsync -raz --progress -e 'ssh -p 26934' ian@3.tcp.ngrok.io:/home/ian/projects/rs
 
 ts --gpus 2 python train.py cfg_foramina_3d_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 
-python train.py cfg0_foramen_seg_cls --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_retinanet_efficientnetv2s_subarticular_v2 --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 python train.py cfg0_gen_det_foraminal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 python train.py cfg0_gen_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 python train.py cfg0_gt_subarticular_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
@@ -82,11 +82,11 @@ ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchn
 ts --gpus 2 python train.py cfg0_retinanet_mobilenetv3_foramen --sync_batchnorm --benchmark --fold 4
 ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 4
 
-
-ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 4
 
 ts --gpus 2 python train.py cfg0_foramen_seg_cls --sync_batchnorm --benchmark --fold 0
 ts --gpus 2 python train.py cfg0_foramen_seg_cls --sync_batchnorm --benchmark --fold 1

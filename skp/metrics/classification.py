@@ -141,12 +141,34 @@ class MAE(_BaseMetric):
         return {"mae": np.mean(np.abs(p - t))}
 
 
+class MAE10(_BaseMetric):
+
+    def compute(self):
+        p = torch.cat(self.p, dim=0).cpu().numpy()
+        t = torch.cat(self.t, dim=0).cpu().numpy()
+        metrics_dict = {"mae": np.mean(np.abs(p - t))}
+        for i in range(p.shape[1]):
+            metrics_dict[f"mae{i:02d}"] = np.mean(np.abs(p[:, i] - t[:, i]))
+        return metrics_dict
+
+
 class MAESigmoid(_BaseMetric):
 
     def compute(self):
         p = torch.cat(self.p, dim=0).sigmoid().cpu().numpy()
         t = torch.cat(self.t, dim=0).cpu().numpy()
         return {"mae": np.mean(np.abs(p - t))}
+
+
+class MAETanh(_BaseMetric):
+
+    def compute(self):
+        p = torch.cat(self.p, dim=0).tanh().cpu().numpy()
+        t = torch.cat(self.t, dim=0).cpu().numpy()
+        metrics_dict = {"mae": np.mean(np.abs(p - t))}
+        for i in range(p.shape[1]):
+            metrics_dict[f"mae{i:02d}"] = np.mean(np.abs(p[:, i] - t[:, i]))
+        return metrics_dict
 
 
 class MAEScale100(_BaseMetric):

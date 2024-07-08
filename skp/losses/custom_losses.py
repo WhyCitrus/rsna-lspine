@@ -29,6 +29,16 @@ class SampleWeightedLogLossBilat(nn.BCEWithLogitsLoss):
         return F.binary_cross_entropy_with_logits(p.float(), t.float(), weight=w.unsqueeze(1))
 
 
+class SampleWeightedLogLossBilatV2(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t, w):
+        # p.shape = t.shape = (N, 6); first 3 right, second 3 left
+        # w.shape = (N, 2); 1st weight rt, 2nd weight left
+        rt_loss = F.binary_cross_entropy_with_logits(p[:, :3].float(), t[:, :3].float(), weight=w[:, 0].unsqueeze(1))
+        lt_loss = F.binary_cross_entropy_with_logits(p[:, 3:].float(), t[:, 3:].float(), weight=w[:, 1].unsqueeze(1))
+        return (rt_loss + lt_loss) / 2
+
+
 class MaskedBCEWithLogitsLoss(nn.BCEWithLogitsLoss):
 
     def forward(self, p, t, mask):
@@ -53,6 +63,13 @@ class L1Loss(nn.L1Loss):
     def forward(self, p, t):
         assert p.shape == t.shape, f"p.shape {p.shape} does not equal t.shape {t.shape}"
         return F.l1_loss(p.sigmoid().float(), t.float())
+
+
+class L1TanhLoss(nn.L1Loss):
+
+    def forward(self, p, t):
+        assert p.shape == t.shape, f"p.shape {p.shape} does not equal t.shape {t.shape}"
+        return F.l1_loss(p.tanh().float(), t.float())
 
 
 class L1LossNoSigmoid(nn.L1Loss):
