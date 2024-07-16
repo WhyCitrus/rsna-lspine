@@ -113,7 +113,10 @@ class Net(nn.Module):
             out["features"] = features 
         if return_loss: 
             loss = self.criterion(logits, y, w=batch["wts"]) if "wts" in batch else self.criterion(logits, y)
-            out["loss"] = loss
+            if isinstance(loss, dict):
+                out.update(loss)
+            else:
+                out["loss"] = loss
 
         return out
 

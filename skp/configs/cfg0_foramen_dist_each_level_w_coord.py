@@ -28,7 +28,7 @@ cfg.normalization_params = {"min": 0, "max": 255}
 cfg.fold = 0 
 cfg.dataset = "simple_2d"
 cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_pngs/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_foramen_distance_each_level.csv"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_foramen_distance_each_level_with_foramen_coords.csv"
 cfg.inputs = "pngfile"
 levels = ["l1_l2", "l2_l3", "l3_l4", "l4_l5", "l5_s1"]
 cfg.targets = [f"rt_{_}_no_rescale" for _ in levels] + [f"lt_{_}_no_rescale" for _ in levels]
@@ -42,7 +42,7 @@ cfg.flip_lr = False
 # cfg.sampler = "IterationBasedSampler"
 # cfg.num_iterations_per_epoch = 10000
 
-cfg.loss = "L1LossNoSigmoid"
+cfg.loss = "L1LossDistanceAndCoords"
 cfg.loss_params = {}
 
 cfg.batch_size = 32
@@ -55,8 +55,8 @@ cfg.scheduler_params = {"eta_min": 0}
 cfg.scheduler_interval = "step"
 
 cfg.val_batch_size = cfg.batch_size * 2
-cfg.metrics = ["MAE10"]
-cfg.val_metric = "mae"
+cfg.metrics = ["MAEDistAndCoords"]
+cfg.val_metric = "loss"
 cfg.val_track = "min"
 
 # Avoid changing image dimensions via command line args
@@ -66,14 +66,14 @@ cfg.image_width = 384
 
 cfg.train_transforms = A.Compose([
     A.Resize(cfg.image_height, cfg.image_width, p=1),
-    A.HorizontalFlip(p=0.5),
-    A.VerticalFlip(p=0.5),
-    A.Transpose(p=0.5),
-    A.RandomRotate90(p=0.5),
+    # A.HorizontalFlip(p=0.5),
+    # A.VerticalFlip(p=0.5),
+    # A.Transpose(p=0.5),
+    # A.RandomRotate90(p=0.5),
     A.SomeOf([
-        A.ShiftScaleRotate(shift_limit=0.00, scale_limit=0.2, rotate_limit=0, border_mode=cv2.BORDER_CONSTANT, p=1),
-        A.ShiftScaleRotate(shift_limit=0.00, scale_limit=0.0, rotate_limit=30, border_mode=cv2.BORDER_CONSTANT, p=1),
-        A.GridDistortion(p=1),
+        # A.ShiftScaleRotate(shift_limit=0.00, scale_limit=0.2, rotate_limit=0, border_mode=cv2.BORDER_CONSTANT, p=1),
+        # A.ShiftScaleRotate(shift_limit=0.00, scale_limit=0.0, rotate_limit=30, border_mode=cv2.BORDER_CONSTANT, p=1),
+        # A.GridDistortion(p=1),
         A.GaussianBlur(p=1),
         A.GaussNoise(p=1),
         A.RandomGamma(p=1),

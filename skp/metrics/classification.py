@@ -152,6 +152,21 @@ class MAE10(_BaseMetric):
         return metrics_dict
 
 
+class MAEDistAndCoords(_BaseMetric):
+
+    def compute(self):
+        p = torch.cat(self.p, dim=0).cpu()
+        p[:, 10:] = p[:, 10:].sigmoid()
+        p = p.numpy()
+        t = torch.cat(self.t, dim=0).cpu().numpy()
+        metrics_dict = {"mae": np.mean(np.abs(p - t))}
+        for i in range(p.shape[1]):
+            metrics_dict[f"mae{i:02d}"] = np.mean(np.abs(p[:, i] - t[:, i]))
+        metrics_dict["mae_dist"] = np.mean(np.abs(p[:, :10] - t[:, :10]))
+        metrics_dict["mae_coords"] = np.mean(np.abs(p[:, 10:] - t[:, 10:]))
+        return metrics_dict
+
+
 class MAESigmoid(_BaseMetric):
 
     def compute(self):

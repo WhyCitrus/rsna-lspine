@@ -18,27 +18,29 @@ class Net(nn.Module):
 
         self.transformer = nn.TransformerEncoder(layer, 
             num_layers=cfg.transformer_num_layers)
-        self.classifier = nn.Linear(cfg.transformer_d_model, cfg.num_classes)
+        self.linear1 = nn.Linear(cfg.transformer_d_model, 10) # predict distance
+        self.linear2 = nn.Linear(cfg.transformer_d_model * 2, 20)
 
     def forward(self, batch, return_loss=False, return_features=False):
         x = batch["x"]
-        y = batch["y"] if "y" in batch else None
+        y_dist = batch["y_dist"] if "y_dist" in batch else None
+        y_coord = batch["y_coord"] if "y_coord" in batch else None
         # mask for padded tokens
         mask = batch["mask"] if "mask" in batch else None
+
         if return_loss:
             assert isinstance(y, torch.Tensor)
 
         features = self.transformer(x, src_key_padding_mask=mask)
-        # NOTE: for src_key_padding_mask, 1 indicates PADDING TOKEN and 0 indicates NON-PADDING TOKEN
-        #       opposite my intuition
-
-        logits = self.classifier(features)
+        feature_avgmax = torch.cat([features.mean(1), features.amax(1)], dim=1)
+        logits_dist = self.linear1(features)
+        logits_coord = self.linear2(feature_avgmax)
         
-        out = {"logits": logits}
+        out = {"logits_dist": logits_dist, "logits_coord": logits_coord}
         if return_features:
             out["features"] = features 
         if return_loss: 
-            loss = self.criterion(logits, y, mask)
+            loss = self.criterion(logits_dist, logits_coords, y_dist, y_coord)
             out["loss"] = loss
 
         return out

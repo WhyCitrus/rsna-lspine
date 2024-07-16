@@ -34,7 +34,9 @@ class Task(pl.LightningModule):
         # if isinstance(self.mixaug, dict):
         #     X, y = self._apply_mixaug(X, y)
         out = self.model(batch, return_loss=True) 
-        self.log("loss", out["loss"]) 
+        for k, v in out.items():
+            if "loss" in k:
+                self.log(k, v)
         return out["loss"]
 
     def validation_step(self, batch, batch_idx): 

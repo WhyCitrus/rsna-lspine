@@ -107,6 +107,28 @@ class L1Loss(nn.L1Loss):
         return F.l1_loss(p.sigmoid().float(), t.float())
 
 
+class L1LossDistanceAndCoords(nn.Module):
+
+    def forward(self, p, t):
+        # p.shape will be 30 in order of: (rt_dist ... lt_dist ... rt_coord_x ... lt_coord_x ...)
+        dist_loss = (F.l1_loss(p[:, :10].float(), t[:, :10].float()) + F.mse_loss(p[:, :10].float(), t[:, :10].float()) / 10) / 2.
+        coord_loss = (F.l1_loss(p[:, 10:].sigmoid().float(), t[:, 10:].float()) + F.mse_loss(p[:, 10:].sigmoid().float(), t[:, 10:].float())) / 2.
+        return {"loss": dist_loss + 100 * coord_loss, "dist_loss": dist_loss, "coord_loss": coord_loss}
+
+
+class L1LossDistanceAndCoords(nn.Module):
+
+    def forward(self, p_dist, p_coord, t_dist, t_coord, mask):
+        # coord loss is easy because it's not a sequence prediction
+        coord_loss_l1 = F.l1_loss(p_coord.sigmoid().float(), t_coord.float())
+        coord_loss_l2 = F.mse_loss(p_coord.sigmoid().float(), t_coord.float())
+        dist_loss_l1 = F.l1_loss(p_dist[mask].float(), t_coord[mask].float())
+        dist_loss_l2 = F.mse_loss(p_dist[mask].float(), t_coord[mask].float())
+        coord_loss = (coord_loss_l1 + coord_loss_l2) / 2.
+        dist_loss = (dist_loss_l1 + dist_loss_l2 / 10.) / 2.
+        return {"loss": dist_loss + 100 * coord_loss, "dist_loss": dist_loss, "coord_loss": coord_loss}
+
+
 class L1TanhLoss(nn.L1Loss):
 
     def forward(self, p, t):
