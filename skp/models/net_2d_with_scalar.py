@@ -43,9 +43,9 @@ class Net(nn.Module):
                                          stride=1, bias=False)
             self.dim_feats = self.cfg.reduce_feat_dim
 
+        self.dim_feats = self.dim_feats + 1
         self.dropout = nn.Dropout(p=self.cfg.dropout) 
-        self.var_embedding = nn.Embedding(self.cfg.var_embed_shape, self.cfg.var_embed_dim)
-        self.linear = nn.Linear(self.dim_feats + self.cfg.var_embed_dim, self.cfg.num_classes)
+        self.linear = nn.Linear(self.dim_feats, self.cfg.num_classes)
 
         if self.cfg.load_pretrained_backbone:
             print(f"Loading pretrained backbone from {self.cfg.load_pretrained_backbone} ...")
@@ -60,8 +60,10 @@ class Net(nn.Module):
             if len(feat_reduce_weight) > 0:
                 self.feat_reduce.load_state_dict(feat_reduce_weight)
 
+        self.backbone_frozen = False
         if self.cfg.freeze_backbone:
             self.freeze_backbone()
+            self.backbone_frozen = True
 
     def normalize(self, x):
         if self.cfg.normalization == "-1_1":
@@ -91,8 +93,7 @@ class Net(nn.Module):
     def forward(self, batch, return_loss=False, return_features=False):
         x = batch["x"]
         y = batch["y"] if "y" in batch else None
-        var = batch["var"]
-        var_out = self.var_embedding(var)
+        s = batch["scalar"]
 
         if return_loss:
             assert isinstance(y, torch.Tensor)
@@ -104,7 +105,7 @@ class Net(nn.Module):
         if hasattr(self, "feat_reduce"):
             features = self.feat_reduce(features.unsqueeze(-1)).squeeze(-1) 
 
-        features = torch.cat([features, var_out], dim=1)
+        features = torch.cat([features, s], dim=1)
 
         if self.cfg.multisample_dropout:
             logits = torch.mean(torch.stack([self.linear(self.dropout(features)) for _ in range(5)]), dim=0)

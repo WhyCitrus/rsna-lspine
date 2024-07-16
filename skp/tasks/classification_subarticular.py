@@ -35,13 +35,15 @@ class Task(pl.LightningModule):
         #     X, y = self._apply_mixaug(X, y)
         out = self.model(batch, return_loss=True) 
         self.log("loss", out["loss"]) 
+        self.log("levels_loss", out["levels_loss"])
+        self.log("coords_loss", out["coords_loss"])
         return out["loss"]
 
     def validation_step(self, batch, batch_idx): 
         out = self.model(batch, return_loss=True) 
         self.val_loss += [out["loss"]]
         for m in self.metrics:
-            m.update(out["logits"], batch["y"])
+            m.update(out["logits_coords"], out["logits_levels"], batch["coords"], batch["level_labels"], batch["included_levels"])
         return out["loss"]
 
     def on_validation_epoch_end(self, *args, **kwargs):
@@ -62,7 +64,7 @@ class Task(pl.LightningModule):
             print("\n========")
             max_strlen = max([len(k) for k in metrics.keys()])
             for k,v in metrics.items(): 
-                print(f"{k.ljust(max_strlen)} | {v.item() if isinstance(v, torch.Tensor) else v:.4f}")
+                print(f"{k.ljust(max_strlen)} | {v.item():.4f}")
 
         for k,v in metrics.items():
             self.logger.experiment[f"val/{k}"].append(v)

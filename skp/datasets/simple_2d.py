@@ -21,6 +21,7 @@ class Dataset(TorchDataset):
             df = df[df.fold != self.cfg.fold]
             self.transforms = self.cfg.train_transforms
         elif self.mode == "val":
+            df = df.drop_duplicates().reset_index(drop=True)
             df = df[df.fold == self.cfg.fold]
             self.transforms = self.cfg.val_transforms
 

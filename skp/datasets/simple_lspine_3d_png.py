@@ -69,7 +69,7 @@ class Dataset(TorchDataset):
             data = self.get(i)
 
         x, y = data
-        x = self.transforms(dict(image=x))["image"]
+        # x = self.transforms(dict(image=x))["image"]
 
         x = x.float()
         if y.ndim == 0:

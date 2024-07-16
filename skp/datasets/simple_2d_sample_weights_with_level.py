@@ -30,7 +30,7 @@ class Dataset(TorchDataset):
         self.inputs = df[self.cfg.inputs].tolist()
         self.labels = df[self.cfg.targets].values 
         self.sample_weights = df.sample_weight.values
-
+        self.var = pd.Categorical(df.level).codes
         self.collate_fn = train_collate_fn if mode == "train" else val_collate_fn
 
     def __len__(self):
@@ -42,7 +42,7 @@ class Dataset(TorchDataset):
             if isinstance(self.cfg.select_image_channel, int):
                 x = x[..., self.cfg.select_image_channel]
                 x = np.expand_dims(x, axis=-1)
-            y = self.labels[i].copy()
+            y = self.labels[i]
             return x, y
         except Exception as e:
             print(e)
@@ -79,4 +79,4 @@ class Dataset(TorchDataset):
         if y.ndim == 0:
             y = torch.tensor(y).float().unsqueeze(-1)
 
-        return {"x": x, "y": y, "index": i, "wts": wts}
+        return {"x": x, "y": y, "index": i, "wts": wts, "var": torch.tensor(self.var[i]).long()}

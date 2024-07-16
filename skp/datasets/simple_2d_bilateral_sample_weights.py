@@ -1,3 +1,4 @@
+import copy
 import cv2
 import numpy as np
 import os
@@ -29,7 +30,7 @@ class Dataset(TorchDataset):
         self.df = df.reset_index(drop=True)
         self.inputs = df[self.cfg.inputs].tolist()
         self.labels = df[self.cfg.targets].values 
-        self.sample_weights = df.sample_weight.values
+        self.sample_weights = np.stack([df.rt_sample_weight, df.lt_sample_weight], axis=1)
 
         self.collate_fn = train_collate_fn if mode == "train" else val_collate_fn
 
@@ -42,7 +43,7 @@ class Dataset(TorchDataset):
             if isinstance(self.cfg.select_image_channel, int):
                 x = x[..., self.cfg.select_image_channel]
                 x = np.expand_dims(x, axis=-1)
-            y = self.labels[i].copy()
+            y = copy.deepcopy(self.labels[i])
             return x, y
         except Exception as e:
             print(e)

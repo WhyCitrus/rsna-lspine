@@ -18,6 +18,32 @@ class SampleWeightedLogLoss(nn.BCEWithLogitsLoss):
         return F.binary_cross_entropy_with_logits(p.float(), t.float(), weight=w.unsqueeze(1))
 
 
+class SampleWeightedLogLossV2(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        loss = (F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none") * w.float().to(p.device)).mean()
+        return loss
+
+
+def torch_log_loss(p, t):
+    w = torch.ones((len(p), )).to(p.device)
+    w[t[:, 1] == 1] = 2
+    w[t[:, 2] == 1] = 4
+    loss = -torch.xlogy(t.float(), p.sigmoid().float()).sum(1)
+    loss = loss * w
+    loss = loss / w.sum()
+    return loss.sum()
+
+
+class SampleWeightedLogLossV3(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        return torch_log_loss(p, t)
+
+
 class SampleWeightedLogLossBilat(nn.BCEWithLogitsLoss):
 
     def forward(self, p, t):
@@ -27,6 +53,22 @@ class SampleWeightedLogLossBilat(nn.BCEWithLogitsLoss):
         w[t[:, 2] == 1] = 4.0 
         w = w.to(p.device)
         return F.binary_cross_entropy_with_logits(p.float(), t.float(), weight=w.unsqueeze(1))
+
+
+class ComboLevelsAndMaskedCoordsLoss(nn.Module):
+
+    def forward(self, p_coords, p_levels, t_coords, t_levels, included_levels):
+        levels_loss = F.binary_cross_entropy_with_logits(p_levels.float(), t_levels.float())
+        coords_loss = F.l1_loss(p_coords.float().sigmoid(), t_coords.float(), reduction="none")
+        coords_mean_loss = []
+        for b_idx, inc in enumerate(included_levels):
+            tmp_indices = torch.where(inc)[0]
+            tmp_indices = torch.cat([tmp_indices, tmp_indices + 15])
+            # does throw error but uncommon so ignore for now
+            # assert t_coords[b_idx, tmp_indices].max() <= 1 
+            coords_mean_loss.append(coords_loss[b_idx, tmp_indices].mean())
+        coords_loss = torch.stack(coords_mean_loss).mean(0)
+        return {"loss": levels_loss + 10 * coords_loss, "levels_loss": levels_loss, "coords_loss": coords_loss}
 
 
 class SampleWeightedLogLossBilatV2(nn.BCEWithLogitsLoss):

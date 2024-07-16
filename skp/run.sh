@@ -64,12 +64,19 @@ rsync -raz --progress -e 'ssh -p 26934' ian@3.tcp.ngrok.io:/home/ian/projects/rs
 
 ts --gpus 2 python train.py cfg_foramina_3d_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 
-python train.py cfg0_retinanet_efficientnetv2s_foramen_propagated --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_gen_det_foraminal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_gen_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_gt_subarticular_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_gen_det2_spinal_crops_embed_level --sync_batchnorm --benchmark --fold 0 --neptune_mode debug --backbone convnextv2_large.fcmae_ft_in22k_in1k_384
+python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug --data_dir ../data/train_x3d_generated_spinal_crops/canal
+python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 python train.py cfg0_gt_foraminal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_gt_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_gen_subarticular_full_slice --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+
+
+python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 0
+python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 1
+python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 2
+python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 3
+python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 4
 
 ts --gpus 2 python train.py cfg0_retinanet_mobilenetv3_foramen --sync_batchnorm --benchmark --fold 0
 ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 0
@@ -82,35 +89,35 @@ ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchn
 ts --gpus 2 python train.py cfg0_retinanet_mobilenetv3_foramen --sync_batchnorm --benchmark --fold 4
 ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 4
 
-ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg0_foramen_dist_each_level_no_rescale --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d_with_flips --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d_with_flips --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d_with_flips --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d_with_flips --sync_batchnorm --benchmark --fold 4
 
-ts --gpus 2 python train.py cfg0_foramen_seg_cls --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg0_foramen_seg_cls --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg0_foramen_seg_cls --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg0_foramen_seg_cls --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg0_foramen_seg_cls --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg0_subarticular --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg0_gen_det2_all_crops_3d_5 --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg0_gen_det2_all_crops_3d_5 --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg0_gen_det2_all_crops_3d_5 --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg0_gen_det2_all_crops_3d_5 --sync_batchnorm --benchmark --fold 4
 
-ts --gpus 2 python train.py cfg0_gen_det_foraminal_crops --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg0_gen_det_foraminal_crops --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg0_gen_det_foraminal_crops --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg0_gen_det_foraminal_crops --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg0_gen_det_foraminal_crops --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 0 --model net_r2plus1d 
+ts --gpus 2 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 1 --model net_r2plus1d 
+ts --gpus 2 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 2 --model net_r2plus1d 
+ts --gpus 2 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 3 --model net_r2plus1d 
+ts --gpus 2 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 4 --model net_r2plus1d 
 
-ts --gpus 2 python train.py cfg0_gt_foraminal_crops --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg0_gt_foraminal_crops --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg0_gt_foraminal_crops --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg0_gt_foraminal_crops --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg0_gt_foraminal_crops --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg0_gen_det2_spinal_crops_3d --sync_batchnorm --benchmark --fold 0 --model net_r2plus1d 
+ts --gpus 2 python train.py cfg0_gen_det2_spinal_crops_3d --sync_batchnorm --benchmark --fold 1 --model net_r2plus1d 
+ts --gpus 2 python train.py cfg0_gen_det2_spinal_crops_3d --sync_batchnorm --benchmark --fold 2 --model net_r2plus1d 
+ts --gpus 2 python train.py cfg0_gen_det2_spinal_crops_3d --sync_batchnorm --benchmark --fold 3 --model net_r2plus1d 
+ts --gpus 2 python train.py cfg0_gen_det2_spinal_crops_3d --sync_batchnorm --benchmark --fold 4 --model net_r2plus1d 
 
-ts --gpus 2 python train.py cfg0_gen_spinal_crops --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg0_gen_spinal_crops --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg0_gen_spinal_crops --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg0_gen_spinal_crops --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg0_gen_spinal_crops --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg00_sagittal_canal_coords_3d_with_flips --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg00_sagittal_canal_coords_3d_with_flips --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg00_sagittal_canal_coords_3d_with_flips --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg00_sagittal_canal_coords_3d_with_flips --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg00_sagittal_canal_coords_3d_with_flips --sync_batchnorm --benchmark --fold 4
 
 ts --gpus 2 python train.py cfg0_gt_spinal_crops --sync_batchnorm --benchmark --fold 0
 ts --gpus 2 python train.py cfg0_gt_spinal_crops --sync_batchnorm --benchmark --fold 1
@@ -157,50 +164,74 @@ ts --gpus 2 python train.py cfg_identify_subarticular_slices_with_level --sync_b
 
 
 
-ln -s "../../skp/experiments/cfg_predict_sagittal_foramina_coords/312b2196/fold0/checkpoints/last.ckpt" fold0.pt
-ln -s "../../skp/experiments/cfg_predict_sagittal_foramina_coords/19164216/fold1/checkpoints/last.ckpt" fold1.pt
-ln -s "../../skp/experiments/cfg_predict_sagittal_foramina_coords/ed7c9c8a/fold2/checkpoints/last.ckpt" fold2.pt
-ln -s "../../skp/experiments/cfg_predict_sagittal_foramina_coords/b0a5b7d6/fold3/checkpoints/last.ckpt" fold3.pt
-ln -s "../../skp/experiments/cfg_predict_sagittal_foramina_coords/c4217cb1/fold4/checkpoints/last.ckpt" fold4.pt
+ln -s "../skp/experiments/cfg0_foramen_dist_each_level_no_rescale/8a36f1e7/fold0/checkpoints/last.ckpt" cfg0_foramen_dist_each_level_no_rescale/fold0.ckpt
+ln -s "../skp/experiments/cfg0_foramen_dist_each_level_no_rescale/13026f5f/fold1/checkpoints/last.ckpt" cfg0_foramen_dist_each_level_no_rescale/fold1.ckpt
+ln -s "../skp/experiments/cfg0_foramen_dist_each_level_no_rescale/a32b099d/fold2/checkpoints/last.ckpt" cfg0_foramen_dist_each_level_no_rescale/fold2.ckpt
+ln -s "../skp/experiments/cfg0_foramen_dist_each_level_no_rescale/27abbc21/fold3/checkpoints/last.ckpt" cfg0_foramen_dist_each_level_no_rescale/fold3.ckpt
+ln -s "../skp/experiments/cfg0_foramen_dist_each_level_no_rescale/246c107f/fold4/checkpoints/last.ckpt" cfg0_foramen_dist_each_level_no_rescale/fold4.ckpt
 
-ln -s "../../skp/experiments/cfg_predict_sagittal_canal_coords/016642e2/fold0/checkpoints/last.ckpt" fold0.pt
-ln -s "../../skp/experiments/cfg_predict_sagittal_canal_coords/97cd59e2/fold1/checkpoints/last.ckpt" fold1.pt
-ln -s "../../skp/experiments/cfg_predict_sagittal_canal_coords/a3b02859/fold2/checkpoints/last.ckpt" fold2.pt
-ln -s "../../skp/experiments/cfg_predict_sagittal_canal_coords/c9e60103/fold3/checkpoints/last.ckpt" fold3.pt
-ln -s "../../skp/experiments/cfg_predict_sagittal_canal_coords/74592ed9/fold4/checkpoints/last.ckpt" fold4.pt
+ln -s "../skp/experiments/cfg0_canal_dist_each_level_no_rescale/5d91f326/fold0/checkpoints/last.ckpt" cfg0_canal_dist_each_level_no_rescale/fold0.ckpt
+ln -s "../skp/experiments/cfg0_canal_dist_each_level_no_rescale/8c15a109/fold1/checkpoints/last.ckpt" cfg0_canal_dist_each_level_no_rescale/fold1.ckpt
+ln -s "../skp/experiments/cfg0_canal_dist_each_level_no_rescale/241d3c26/fold2/checkpoints/last.ckpt" cfg0_canal_dist_each_level_no_rescale/fold2.ckpt
+ln -s "../skp/experiments/cfg0_canal_dist_each_level_no_rescale/10a48016/fold3/checkpoints/last.ckpt" cfg0_canal_dist_each_level_no_rescale/fold3.ckpt
+ln -s "../skp/experiments/cfg0_canal_dist_each_level_no_rescale/162efef7/fold4/checkpoints/last.ckpt" cfg0_canal_dist_each_level_no_rescale/fold4.ckpt
 
-ln -s "../../skp/experiments/cfg_identify_subarticular_slices_with_level/a0eaf12e/fold0/checkpoints/last.ckpt" fold0.pt
-ln -s "../../skp/experiments/cfg_identify_subarticular_slices_with_level/51176343/fold1/checkpoints/last.ckpt" fold1.pt
-ln -s "../../skp/experiments/cfg_identify_subarticular_slices_with_level/4b2e01b9/fold2/checkpoints/last.ckpt" fold2.pt
-ln -s "../../skp/experiments/cfg_identify_subarticular_slices_with_level/0a8cbac8/fold3/checkpoints/last.ckpt" fold3.pt
-ln -s "../../skp/experiments/cfg_identify_subarticular_slices_with_level/50ac81cd/fold4/checkpoints/last.ckpt" fold4.pt
+ln -s "../skp/experiments/cfg0_subarticular_dist_from_each_level_no_rescale/45239f1d/fold0/checkpoints/last.ckpt" cfg0_subarticular_dist_from_each_level_no_rescale/fold0.ckpt
+ln -s "../skp/experiments/cfg0_subarticular_dist_from_each_level_no_rescale/44271e71/fold1/checkpoints/last.ckpt" cfg0_subarticular_dist_from_each_level_no_rescale/fold1.ckpt
+ln -s "../skp/experiments/cfg0_subarticular_dist_from_each_level_no_rescale/a52bc673/fold2/checkpoints/last.ckpt" cfg0_subarticular_dist_from_each_level_no_rescale/fold2.ckpt
+ln -s "../skp/experiments/cfg0_subarticular_dist_from_each_level_no_rescale/b5c8056f/fold3/checkpoints/last.ckpt" cfg0_subarticular_dist_from_each_level_no_rescale/fold3.ckpt
+ln -s "../skp/experiments/cfg0_subarticular_dist_from_each_level_no_rescale/b1825ae6/fold4/checkpoints/last.ckpt" cfg0_subarticular_dist_from_each_level_no_rescale/fold4.ckpt
 
-ln -s "../../skp/experiments/cfg_axial_subarticular_coords/0427e248/fold0/checkpoints/last.ckpt" fold0.pt
-ln -s "../../skp/experiments/cfg_axial_subarticular_coords/d0ab9f20/fold1/checkpoints/last.ckpt" fold1.pt
-ln -s "../../skp/experiments/cfg_axial_subarticular_coords/93cbb14f/fold2/checkpoints/last.ckpt" fold2.pt
-ln -s "../../skp/experiments/cfg_axial_subarticular_coords/2a89cdd3/fold3/checkpoints/last.ckpt" fold3.pt
-ln -s "../../skp/experiments/cfg_axial_subarticular_coords/fd2f35d2/fold4/checkpoints/last.ckpt" fold4.pt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_foramen_propagated/11751bb5/fold0/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_foramen_propagated/fold0.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_foramen_propagated/ac801ddb/fold1/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_foramen_propagated/fold1.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_foramen_propagated/e7a1ea96/fold2/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_foramen_propagated/fold2.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_foramen_propagated/163d6447/fold3/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_foramen_propagated/fold3.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_foramen_propagated/446fe81f/fold4/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_foramen_propagated/fold4.ckpt
 
-ln -s "../../skp/experiments/cfg0_gen_subarticular_crops/cb5473ff/fold0/checkpoints/last.ckpt" fold0.pt
-ln -s "../../skp/experiments/cfg0_gen_subarticular_crops/d82ae2ee/fold1/checkpoints/last.ckpt" fold1.pt
-ln -s "../../skp/experiments/cfg0_gen_subarticular_crops/2cdcd0ec/fold2/checkpoints/last.ckpt" fold2.pt
-ln -s "../../skp/experiments/cfg0_gen_subarticular_crops/4620efa7/fold3/checkpoints/last.ckpt" fold3.pt
-ln -s "../../skp/experiments/cfg0_gen_subarticular_crops/ea5ff58f/fold4/checkpoints/last.ckpt" fold4.pt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_canal/227c5f54/fold0/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_canal/fold0.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_canal/4c179783/fold1/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_canal/fold1.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_canal/9fb4c459/fold2/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_canal/fold2.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_canal/a33f1372/fold3/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_canal/fold3.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_canal/7d0d225d/fold4/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_canal/fold4.ckpt
 
-ln -s "../../skp/experiments/cfg0_gen_foraminal_crops/5855fd35/fold0/checkpoints/last.ckpt" fold0.pt
-ln -s "../../skp/experiments/cfg0_gen_foraminal_crops/eca1fb70/fold1/checkpoints/last.ckpt" fold1.pt
-ln -s "../../skp/experiments/cfg0_gen_foraminal_crops/1b4003f3/fold2/checkpoints/last.ckpt" fold2.pt
-ln -s "../../skp/experiments/cfg0_gen_foraminal_crops/ac2cc4bb/fold3/checkpoints/last.ckpt" fold3.pt
-ln -s "../../skp/experiments/cfg0_gen_foraminal_crops/2d78f99c/fold4/checkpoints/last.ckpt" fold4.pt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_subarticular_v2/ab8f3817/fold0/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_subarticular_v2/fold0.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_subarticular_v2/d70656d3/fold1/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_subarticular_v2/fold1.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_subarticular_v2/c6dfbcf4/fold2/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_subarticular_v2/fold2.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_subarticular_v2/dce74eae/fold3/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_subarticular_v2/fold3.ckpt
+ln -s "../skp/experiments/cfg0_retinanet_efficientnetv2s_subarticular_v2/9588499a/fold4/checkpoints/last.ckpt" cfg0_retinanet_efficientnetv2s_subarticular_v2/fold4.ckpt
 
-ln -s "../../skp/experiments/cfg0_gen_spinal_crops/13f4b060/fold0/checkpoints/last.ckpt" fold0.pt
-ln -s "../../skp/experiments/cfg0_gen_spinal_crops/f29158c9/fold1/checkpoints/last.ckpt" fold1.pt
-ln -s "../../skp/experiments/cfg0_gen_spinal_crops/f35b3636/fold2/checkpoints/last.ckpt" fold2.pt
-ln -s "../../skp/experiments/cfg0_gen_spinal_crops/3fb8ec2e/fold3/checkpoints/last.ckpt" fold3.pt
-ln -s "../../skp/experiments/cfg0_gen_spinal_crops/7b91d7b1/fold4/checkpoints/last.ckpt" fold4.pt
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops/b17499ef/fold0/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops/fold0.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops/5e397655/fold1/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops/fold1.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops/9aae4608/fold2/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops/fold2.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops/f87587b8/fold3/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops/fold3.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops/2fc4c432/fold4/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops/fold4.ckpt
 
-ln -s "../../skp/experiments/cfg0_gen_all_crops/c3a47365/fold0/checkpoints/last.ckpt" fold0.pt
-ln -s "../../skp/experiments/cfg0_gen_all_crops/e593a7ab/fold1/checkpoints/last.ckpt" fold1.pt
-ln -s "../../skp/experiments/cfg0_gen_all_crops/7b8cd9ca/fold2/checkpoints/last.ckpt" fold2.pt
-ln -s "../../skp/experiments/cfg0_gen_all_crops/079b8672/fold3/checkpoints/last.ckpt" fold3.pt
-ln -s "../../skp/experiments/cfg0_gen_all_crops/ca6ea9a6/fold4/checkpoints/last.ckpt" fold4.pt
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops/f655b357/fold0/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops/fold0.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops/aefa9900/fold1/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops/fold1.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops/d5a82aaf/fold2/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops/fold2.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops/0c3d91a0/fold3/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops/fold3.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops/0685bdea/fold4/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops/fold4.ckpt
+
+ln -s "../skp/experiments/cfg0_gen_det2_subarticular_crops/2203f5d6/fold0/checkpoints/last.ckpt" cfg0_gen_det2_subarticular_crops/fold0.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_subarticular_crops/076f8268/fold1/checkpoints/last.ckpt" cfg0_gen_det2_subarticular_crops/fold1.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_subarticular_crops/1eba564a/fold2/checkpoints/last.ckpt" cfg0_gen_det2_subarticular_crops/fold2.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_subarticular_crops/0beeccb9/fold3/checkpoints/last.ckpt" cfg0_gen_det2_subarticular_crops/fold3.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_subarticular_crops/11436c15/fold4/checkpoints/last.ckpt" cfg0_gen_det2_subarticular_crops/fold4.ckpt
+
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops_3d/845dc9ca/fold0/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops_3d/fold0.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops_3d/6143048b/fold1/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops_3d/fold1.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops_3d/3afde911/fold2/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops_3d/fold2.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops_3d/d4514649/fold3/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops_3d/fold3.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_foraminal_crops_3d/13410aaa/fold4/checkpoints/last.ckpt" cfg0_gen_det2_foraminal_crops_3d/fold4.ckpt
+
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops_3d/aea5f073/fold0/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops_3d/fold0.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops_3d/dfbb0a20/fold1/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops_3d/fold1.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops_3d/6a58b496/fold2/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops_3d/fold2.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops_3d/542349a0/fold3/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops_3d/fold3.ckpt
+ln -s "../skp/experiments/cfg0_gen_det2_spinal_crops_3d/401d0265/fold4/checkpoints/last.ckpt" cfg0_gen_det2_spinal_crops_3d/fold4.ckpt
+
+ln -s "../skp/experiments/cfg0_gen_subarticular_full_slice/3e84c078/fold0/checkpoints/last.ckpt" cfg0_gen_subarticular_full_slice/fold0.ckpt
+ln -s "../skp/experiments/cfg0_gen_subarticular_full_slice/57328963/fold1/checkpoints/last.ckpt" cfg0_gen_subarticular_full_slice/fold1.ckpt
+ln -s "../skp/experiments/cfg0_gen_subarticular_full_slice/7755daee/fold2/checkpoints/last.ckpt" cfg0_gen_subarticular_full_slice/fold2.ckpt
+ln -s "../skp/experiments/cfg0_gen_subarticular_full_slice/fd4d7eeb/fold3/checkpoints/last.ckpt" cfg0_gen_subarticular_full_slice/fold3.ckpt
+ln -s "../skp/experiments/cfg0_gen_subarticular_full_slice/11e53e42/fold4/checkpoints/last.ckpt" cfg0_gen_subarticular_full_slice/fold4.ckpt

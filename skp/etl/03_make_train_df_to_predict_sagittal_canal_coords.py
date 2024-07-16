@@ -1,7 +1,5 @@
 import pandas as pd
 
-from utils import create_double_cv
-
 
 meta_df = pd.read_csv("../../data/dicom_metadata.csv")
 coords_df = pd.read_csv("../../data/train_label_coordinates.csv")
@@ -48,4 +46,4 @@ new_df = pd.concat(new_df_list).reset_index(drop=True)
 new_df["series_folder"] = new_df.study_id.astype("str") + "/" + new_df.series_id.astype("str")
 folds_df = pd.read_csv("../../data/folds_cv5.csv")
 new_df = new_df.merge(folds_df, on="study_id")
-new_df.to_csv("../../data/train_to_test_predicting_sagittal_canal_coords_kfold.csv", index=False)
+new_df.to_csv("../../data/train_to_test_predicting_sagittal_canal_coords_kfold_v2.csv", index=False)

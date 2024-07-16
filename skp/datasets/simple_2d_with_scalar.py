@@ -22,14 +22,11 @@ class Dataset(TorchDataset):
             self.transforms = self.cfg.train_transforms
         elif self.mode == "val":
             df = df[df.fold == self.cfg.fold]
-            if "ignore_during_val" in df.columns:
-                df = df[df.ignore_during_val == 0]
             self.transforms = self.cfg.val_transforms
 
-        self.df = df.reset_index(drop=True)
         self.inputs = df[self.cfg.inputs].tolist()
         self.labels = df[self.cfg.targets].values 
-        self.sample_weights = df.sample_weight.values
+        self.scalar = df.sag_position.tolist()
 
         self.collate_fn = train_collate_fn if mode == "train" else val_collate_fn
 
@@ -39,10 +36,7 @@ class Dataset(TorchDataset):
     def get(self, i):
         try:
             x = cv2.imread(os.path.join(self.cfg.data_dir, self.inputs[i]), self.cfg.cv2_load_flag)
-            if isinstance(self.cfg.select_image_channel, int):
-                x = x[..., self.cfg.select_image_channel]
-                x = np.expand_dims(x, axis=-1)
-            y = self.labels[i].copy()
+            y = self.labels[i]
             return x, y
         except Exception as e:
             print(e)
@@ -54,21 +48,7 @@ class Dataset(TorchDataset):
             i = np.random.randint(len(self))
             data = self.get(i)
 
-        wts = torch.tensor(self.sample_weights[i]).float()
         x, y = data
-
-        if self.cfg.channel_reverse and self.mode == "train" and bool(np.random.binomial(1, 0.5)):
-            x = np.ascontiguousarray(x[:, :, ::-1])
-
-        if self.cfg.flip_ud and bool(np.random.binomial(1, 0.5)) and self.mode == "train":
-            x = np.flipud(x)
-
-        if self.cfg.flip_lr and bool(np.random.binomial(1, 0.5)) and self.mode == "train":
-            # Mainly for training subarticular full slice model 
-            # If flip image then need to also flip the labels
-            x = np.fliplr(x)
-            y = y[[3, 4, 5, 0, 1, 2]]
-
         x = self.transforms(image=x)["image"]
 
         if x.ndim == 2:
@@ -79,4 +59,4 @@ class Dataset(TorchDataset):
         if y.ndim == 0:
             y = torch.tensor(y).float().unsqueeze(-1)
 
-        return {"x": x, "y": y, "index": i, "wts": wts}
+        return {"x": x, "y": y, "scalar": torch.tensor([self.scalar[i]]), "index": i}

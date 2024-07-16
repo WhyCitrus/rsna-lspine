@@ -34,8 +34,8 @@ class _BaseMetric(tm.Metric):
         self.add_state("t", default=[], dist_reduce_fx=None)
 
     def update(self, p, t):
-        self.p.append(p)
-        self.t.append(t)
+        self.p.append(p.float())
+        self.t.append(t.float())
 
     def compute(self):
         raise NotImplementedError
@@ -200,6 +200,22 @@ class CompetitionMetric(_BaseMetric):
         return {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
 
 
+class CompetitionMetricTorchAndNumpy(_BaseMetric):
+
+    def compute(self):
+        p = torch.cat(self.p, dim=0).cpu().sigmoid()
+        t = torch.cat(self.t, dim=0).cpu()
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        torch_loss = F.binary_cross_entropy(p, t, weight=w).item()
+        p = p.numpy()
+        t = t.numpy()
+        w = w.numpy()
+        numpy_loss = skm.log_loss(y_true=t, y_pred=p, sample_weight=w[:, 0])
+        return {"comp_loss": torch_loss, "numpy_loss": numpy_loss}
+
+
 class CompetitionMetricBilat(_BaseMetric):
 
     def compute(self):
@@ -211,4 +227,45 @@ class CompetitionMetricBilat(_BaseMetric):
         wts[t[:, 1] == 1] = 2
         wts[t[:, 2] == 1] = 4
         return {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
+
+
+class SubarticularLevelsAndCoords(tm.Metric):
+    
+    def __init__(self, cfg, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+        
+        self.cfg = cfg 
+
+        self.add_state("p_coords", default=[], dist_reduce_fx=None)
+        self.add_state("p_levels", default=[], dist_reduce_fx=None)
+        self.add_state("t_coords", default=[], dist_reduce_fx=None)
+        self.add_state("t_levels", default=[], dist_reduce_fx=None)
+        self.add_state("included_levels", default=[], dist_reduce_fx=None)
+
+    def update(self, p_coords, p_levels, t_coords, t_levels, included_levels):
+        self.p_coords.append(p_coords)
+        self.p_levels.append(p_levels)
+        self.t_coords.append(t_coords)
+        self.t_levels.append(t_levels)
+        self.included_levels.append(included_levels)
+
+    def compute(self):
+        p_levels = torch.cat(self.p_levels, dim=0).cpu().numpy()
+        t_levels = torch.cat(self.t_levels, dim=0).cpu().numpy()
+        metrics_dict = {}
+        for c in range(p_levels.shape[1]):
+            metrics_dict[f"auc{c}"] = _roc_auc_score(t=t_levels[:, c], p=p_levels[:, c])
+        metrics_dict["auc_mean"] = np.mean([v for v in metrics_dict.values()])
+        p_coords = torch.cat(self.p_coords, dim=0).sigmoid().cpu().numpy()
+        t_coords = torch.cat(self.t_coords, dim=0).cpu().numpy()
+        coords_loss = np.abs(p_coords - t_coords)
+        included_levels = torch.cat(self.included_levels, dim=0).cpu().numpy()
+        coords_mean_loss = []
+        for b_idx, inc in enumerate(included_levels):
+            tmp_indices = np.where(inc)[0]
+            tmp_indices = np.concatenate([tmp_indices, tmp_indices + 15])
+            coords_mean_loss.append(coords_loss[b_idx, tmp_indices].mean())
+        metrics_dict["coords_mae"] = np.mean(coords_mean_loss)
+        return metrics_dict
+
 

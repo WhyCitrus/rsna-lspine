@@ -204,17 +204,17 @@ for study_id, fold in tqdm(study_id_fold_dict.items(), total=len(study_id_fold_d
     # So we should be fine just taking any of them
     if SAG_T1_AVAILABLE:
         sag_t1 = series_path_dict["Sagittal T1"][0]
-        sag_t1, sag_t1_pos, sag_t1_pix = load_dicom_stack([sag_t1], expected_plane="sagittal")
+        sag_t1, sag_t1_pos, sag_t1_pix = load_dicom_stack([sag_t1], plane="sagittal")
     # There were no studies with multiple sagittal T2 series
     # Though if there are in the test set, I assume the above would also apply
     if SAG_T2_AVAILABLE:
         sag_t2 = series_path_dict["Sagittal T2/STIR"][0]
-        sag_t2, sag_t2_pos, sag_t2_pix = load_dicom_stack([sag_t2], expected_plane="sagittal")
+        sag_t2, sag_t2_pos, sag_t2_pix = load_dicom_stack([sag_t2], plane="sagittal")
     # Some studies split axial T2s into segments 
     # So we would need to load all the available axial series
     if AX_T2_AVAILABLE:
         ax_t2 = series_path_dict["Axial T2"]
-        ax_t2, ax_t2_pos, ax_t2_pix = load_dicom_stack(ax_t2, expected_plane="axial", reverse_sort=True)
+        ax_t2, ax_t2_pos, ax_t2_pix = load_dicom_stack(ax_t2, plane="axial", reverse_sort=True)
     # 1- Identify foramina coords (sagittal T1)
     if SAG_T1_AVAILABLE:
         sag_t1_torch = foramina_localization_model_3d["cfg"].val_transforms({"image": np.expand_dims(sag_t1, axis=0)})["image"]

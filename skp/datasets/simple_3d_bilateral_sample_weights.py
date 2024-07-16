@@ -28,7 +28,7 @@ class Dataset(TorchDataset):
 
         self.inputs = df[self.cfg.inputs].tolist()
         self.labels = df[self.cfg.targets].values 
-        self.sample_weights = df.sample_weight.values
+        self.sample_weights = np.stack([df.rt_sample_weight, df.lt_sample_weight], axis=1)
         self.collate_fn = train_collate_fn if mode == "train" else val_collate_fn
 
     def __len__(self):
@@ -70,9 +70,13 @@ class Dataset(TorchDataset):
         
         if self.cfg.reverse_dim0 and self.mode == "train" and bool(np.random.binomial(1, 0.5)):
             x = np.ascontiguousarray(x[:, ::-1])
+            if self.cfg.foramina: # right/left is first dim for sagittal series
+                y = y[[3, 4, 5, 0, 1, 2]]
 
         if self.cfg.flip_lr and bool(np.random.binomial(1, 0.5)) and self.mode == "train":
             x = np.ascontiguousarray(x[:, :, :, ::-1])
+            if not self.cfg.foramina:
+                y = y[[3, 4, 5, 0, 1, 2]]
 
         if self.cfg.flip_ud and bool(np.random.binomial(1, 0.5)) and self.mode == "train":
             x = np.ascontiguousarray(x[:, :, ::-1])
