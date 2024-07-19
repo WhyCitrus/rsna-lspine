@@ -26,19 +26,19 @@ cfg.normalization = "-1_1"
 cfg.normalization_params = {"min": 0, "max": 255}
 
 cfg.fold = 0 
-cfg.dataset = "simple_2d"
-cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_sagittal_canal_crops_3ch/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_sagittal_canal_crops.csv"
+cfg.dataset = "simple_2d_sample_weights"
+cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_crops_gt_with_augs/spinal/"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_gt_spinal_with_augs_kfold.csv"
 cfg.inputs = "filepath"
 cfg.targets = ["normal_mild", "moderate", "severe"]
 cfg.cv2_load_flag = cv2.IMREAD_COLOR
 cfg.num_workers = 14
 cfg.pin_memory = True
 cfg.channel_reverse = True
-# cfg.sampler = "IterationBasedSampler"
-# cfg.num_iterations_per_epoch = 10000
+cfg.sampler = "IterationBasedSampler"
+cfg.num_iterations_per_epoch = 500
 
-cfg.loss = "WeightedLogLoss"
+cfg.loss = "SampleWeightedLogLoss"
 cfg.loss_params = {}
 
 cfg.batch_size = 32
@@ -51,7 +51,7 @@ cfg.scheduler_params = {"eta_min": 0}
 cfg.scheduler_interval = "step"
 
 cfg.val_batch_size = cfg.batch_size * 2
-cfg.metrics = ["AUROC"]
+cfg.metrics = ["AUROC", "CompetitionMetric"]
 cfg.val_metric = "loss"
 cfg.val_track = "min"
 

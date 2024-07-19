@@ -204,10 +204,27 @@ class MAE_CE(_BaseMetric):
         return {"mae": np.mean(np.abs(p - t))}
 
 
+class CompetitionMetricTorch(_BaseMetric):
+
+    def compute(self):
+        p = torch.cat(self.p, dim=0).cpu().sigmoid()
+        p = p / (p.sum(1).unsqueeze(1) + 1e-10)
+        t = torch.cat(self.t, dim=0).cpu()
+        w = torch.ones((len(p), ))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        loss = -torch.xlogy(t.float(), p.float()).sum(1)
+        loss = loss * w
+        loss = loss / w.sum()
+        return {"comp_loss_torch": loss.sum().item()}
+
+
 class CompetitionMetric(_BaseMetric):
 
     def compute(self):
-        p = torch.cat(self.p, dim=0).cpu().sigmoid().numpy()
+        p = torch.cat(self.p, dim=0).cpu().sigmoid()
+        p = p / (p.sum(1).unsqueeze(1) + 1e-10)
+        p = p.numpy()
         t = torch.cat(self.t, dim=0).cpu().numpy()
         wts = np.ones((len(p), ))
         wts[t[:, 1] == 1] = 2

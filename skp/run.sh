@@ -68,8 +68,8 @@ python train.py cfg0_gen_det2_spinal_crops_embed_level --sync_batchnorm --benchm
 python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug --data_dir ../data/train_x3d_generated_spinal_crops/canal
 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_gt_foraminal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_gen_subarticular_full_slice --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_spinal_dist_coord_seg --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg00_gt_with_aug_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 
 
 python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 0
@@ -89,17 +89,17 @@ ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchn
 ts --gpus 2 python train.py cfg0_retinanet_mobilenetv3_foramen --sync_batchnorm --benchmark --fold 4
 ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 4
 
-ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d_with_flips --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d_with_flips --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d_with_flips --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg00_axial_subarticular_levels_and_coords_3d_with_flips --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg00_gt_with_aug_spinal_crops --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg00_gt_with_aug_spinal_crops --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg00_gt_with_aug_spinal_crops --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg00_gt_with_aug_spinal_crops --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg00_gt_with_aug_spinal_crops --sync_batchnorm --benchmark --fold 4
 
-ts --gpus 2 python train.py cfg0_subarticular --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg0_gen_det2_all_crops_3d_5 --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg0_gen_det2_all_crops_3d_5 --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg0_gen_det2_all_crops_3d_5 --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg0_gen_det2_all_crops_3d_5 --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 4
 
 ts --gpus 2 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 0 --model net_r2plus1d 
 ts --gpus 2 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 1 --model net_r2plus1d 

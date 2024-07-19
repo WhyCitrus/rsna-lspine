@@ -19,7 +19,7 @@ class Net(nn.Module):
         self.transformer = nn.TransformerEncoder(layer, 
             num_layers=cfg.transformer_num_layers)
         self.linear1 = nn.Linear(cfg.transformer_d_model, 10) # predict distance
-        self.linear2 = nn.Linear(cfg.transformer_d_model * 2, 20)
+        self.linear2 = nn.Linear(cfg.transformer_d_model, 20)
 
     def forward(self, batch, return_loss=False, return_features=False):
         x = batch["x"]
@@ -29,19 +29,22 @@ class Net(nn.Module):
         mask = batch["mask"] if "mask" in batch else None
 
         if return_loss:
-            assert isinstance(y, torch.Tensor)
+            assert isinstance(y_dist, torch.Tensor) and isinstance(y_coord, torch.Tensor)
 
         features = self.transformer(x, src_key_padding_mask=mask)
-        feature_avgmax = torch.cat([features.mean(1), features.amax(1)], dim=1)
+        feature0 = features[:, 0]
         logits_dist = self.linear1(features)
-        logits_coord = self.linear2(feature_avgmax)
+        logits_coord = self.linear2(feature0)
         
         out = {"logits_dist": logits_dist, "logits_coord": logits_coord}
         if return_features:
             out["features"] = features 
         if return_loss: 
-            loss = self.criterion(logits_dist, logits_coords, y_dist, y_coord)
-            out["loss"] = loss
+            loss = self.criterion(logits_dist, logits_coord, y_dist, y_coord, mask)
+            if isinstance(loss, dict):
+                out.update(loss)
+            else:
+                out["loss"] = loss
 
         return out
 

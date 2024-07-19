@@ -4,6 +4,7 @@ import pytorch_lightning as pl
 import torch.nn as nn
 import torch
 
+from collections import defaultdict
 from neptune.utils import stringify_unsupported
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from .utils import build_dataloader
@@ -24,7 +25,7 @@ class Task(pl.LightningModule):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
-        self.val_loss = []
+        self.val_loss = defaultdict(list)
 
     def set(self, name, attr):
         if name == "metrics":
@@ -44,14 +45,16 @@ class Task(pl.LightningModule):
         # if isinstance(self.mixaug, dict):
         #     X, y = self._apply_mixaug(X, y)
         out = self.model(batch, return_loss=True) 
-        self.log("loss", out["loss"]) 
-        self.log("seg_loss", out["seg_loss"])
-        self.log("cls_loss", out["cls_loss"])
+        for k, v in out.items():
+            if "loss" in k:
+                self.log(k, v)
         return out["loss"]
 
     def validation_step(self, batch, batch_idx): 
         out = self.model(batch, return_loss=True) 
-        self.val_loss += [out["loss"]]
+        for k, v in out.items():
+            if "loss" in k:
+                self.val_loss[k].append(v)
         for m in self.metrics:
             m.update(out["logits_cls"], batch["y_cls"])
         return out["loss"]
@@ -60,8 +63,9 @@ class Task(pl.LightningModule):
         metrics = {}
         for m in self.metrics:
             metrics.update(m.compute())
-        metrics["loss"] = torch.stack(self.val_loss).mean()
-        self.val_loss = []
+        for k, v in self.val_loss.items():
+            metrics[k] = torch.stack(v).mean()
+        self.val_loss = defaultdict(list)
 
         if isinstance(self.val_metric, list):
             metrics["val_metric"] = torch.sum(torch.stack([metrics[_vm.lower()].cpu() for _vm in self.val_metric]))
@@ -74,12 +78,14 @@ class Task(pl.LightningModule):
             print("\n========")
             max_strlen = max([len(k) for k in metrics.keys()])
             for k,v in metrics.items(): 
-                print(f"{k.ljust(max_strlen)} | {v.item():.4f}")
+                print(f"{k.ljust(max_strlen)} | {v.item() if isinstance(v, torch.Tensor) else v:.4f}")
 
-        for k,v in metrics.items():
-            self.logger.experiment[f"val/{k}"].append(v)
+        if self.trainer.state.stage != pl.trainer.states.RunningStage.SANITY_CHECKING: # don't log metrics during sanity check
 
-        self.log("val_metric", metrics["val_metric"], sync_dist=True)
+            for k,v in metrics.items():
+                self.logger.experiment[f"val/{k}"].append(v)
+
+            self.log("val_metric", metrics["val_metric"], sync_dist=True)
 
     def configure_optimizers(self):
         lr_scheduler = {

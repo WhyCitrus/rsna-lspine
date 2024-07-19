@@ -126,8 +126,8 @@ for series_id, series_df in subart_df.groupby("series_id"):
     if len(series_df) == 10:
         condition_level = series_df.condition + series_df.level
         if len(np.unique(condition_level)) == 10:
-            rt = study_df.loc[study_df.condition.apply(lambda x: "Right" in x)]
-            lt = study_df.loc[study_df.condition.apply(lambda x: "Left" in x)]
+            rt = series_df.loc[series_df.condition.apply(lambda x: "Right" in x)]
+            lt = series_df.loc[series_df.condition.apply(lambda x: "Left" in x)]
             rt = rt.sort_values("level", ascending=True)
             lt = lt.sort_values("level", ascending=True)
             if np.max(np.abs(rt.instance_number.values - lt.instance_number.values)) <= 3:
@@ -151,6 +151,7 @@ np.percentile(list(num_slices_per_series.values()), [0, 5, 10, 25, 50, 75, 90, 9
 
 folds_df = pd.read_csv("../../data/folds_cv5.csv")
 study_folds = {row.study_id: row.fold for row in folds_df.itertuples()}
+
 annotations = []
 for series_id, series_df in subart_df.groupby("series_id"):
     ann = {}
@@ -184,6 +185,7 @@ for series_id, series_df in subart_df.groupby("series_id"):
         for cond, lvl, slice_i, xi, yi in zip(series_df.condition, series_df.level, series_df.instance_number, series_df.x, series_df.y)
     }
     ann["num_slices"] = num_slices_per_series[series_id]
+    ann["fold"] = study_folds[series_df.study_id.iloc[0]]
     annotations.append(ann)
 
 with open("../../data/train_subarticular_levels_and_coords_3d.pkl", "wb") as f:

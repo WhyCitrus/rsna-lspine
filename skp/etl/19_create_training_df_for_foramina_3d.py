@@ -29,24 +29,20 @@ df["normal_mild"] = (df.grade == 0).astype("int")
 df["moderate"] = (df.grade == 1).astype("int")
 df["severe"] = (df.grade == 2).astype("int")
 
-print(df.shape)
-df.grade.value_counts()
+rt_df = df.loc[df.laterality == "R"]
+lt_df = df.loc[df.laterality == "L"]
 
-foramina_patches = glob.glob("../../data/train_foramina_crops_3ch/*/*/*.png")
-# check image sizes
-image_sizes = np.vstack([Image.open(_).size for _ in foramina_patches])
-print(image_sizes[:, 0].mean(), image_sizes[:, 1].mean())
+df = rt_df.merge(lt_df, on=["study_id", "level"], suffixes=("_rt", "_lt"))
 
-foramina_patches = [_.replace("../../data/train_foramina_crops_3ch/", "") for _ in foramina_patches]
+foramina_crops = glob.glob("../../data/train_foramina_crops_3d/*/*")
+crop_df = pd.DataFrame({"series_folder": foramina_crops})
+crop_df["series_folder"] = crop_df.series_folder.apply(lambda x: x.replace("../../data/train_foramina_crops_3d/", ""))
+crop_df["study_id"] = crop_df.series_folder.apply(lambda x: x.split("/")[0]).astype("int")
+crop_df["series_id"] = crop_df.series_folder.apply(lambda x: x.split("/")[1]).astype("int")
 
-patch_df = pd.DataFrame({"filepath": foramina_patches})
-patch_df["study_id"] = patch_df.filepath.apply(lambda x: x.split("/")[-3]).astype("int")
-patch_df["series_id"] = patch_df.filepath.apply(lambda x: x.split("/")[-2]).astype("int")
-patch_df["laterality"] = patch_df.filepath.apply(lambda x: os.path.basename(x)[0])
-patch_df["level"] = patch_df.filepath.apply(lambda x: "_".join(x.replace(".png", "").split("_")[-2:]))
-
-df = df.merge(patch_df, on=["study_id", "laterality", "level"])
+df = df.merge(crop_df, on="study_id")
+df["series_folder"] = df.series_folder + "/" + df.level
 folds_df = pd.read_csv("../../data/folds_cv5.csv")
 df = df.merge(folds_df, on="study_id")
 
-df.to_csv("../../data/train_foramina_crops.csv", index=False)
+df.to_csv("../../data/train_foramina_crops_3d.csv", index=False)

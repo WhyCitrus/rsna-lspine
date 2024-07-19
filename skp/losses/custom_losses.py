@@ -29,10 +29,12 @@ class SampleWeightedLogLossV2(nn.BCEWithLogitsLoss):
 
 
 def torch_log_loss(p, t):
+    p = p.sigmoid()
+    p = p / (p.sum(1).unsqueeze(1) + 1e-10)
     w = torch.ones((len(p), )).to(p.device)
     w[t[:, 1] == 1] = 2
     w[t[:, 2] == 1] = 4
-    loss = -torch.xlogy(t.float(), p.sigmoid().float()).sum(1)
+    loss = -torch.xlogy(t.float(), p.float()).sum(1)
     loss = loss * w
     loss = loss / w.sum()
     return loss.sum()
@@ -116,14 +118,99 @@ class L1LossDistanceAndCoords(nn.Module):
         return {"loss": dist_loss + 100 * coord_loss, "dist_loss": dist_loss, "coord_loss": coord_loss}
 
 
-class L1LossDistanceAndCoords(nn.Module):
+class SigmoidDiceBCELoss(nn.Module):
+
+    def __init__(self, seg_pos_weight=None):
+        super().__init__()
+        self.eps = 1e-5
+        self.seg_pos_weight = torch.tensor(seg_pos_weight) if not isinstance(seg_pos_weight, type(None)) else 1.0
+
+    def forward(self, p, t):
+        # p.shape = t.shape = (N, C, H, W)
+        assert p.shape == t.shape
+        p, t = p.float(), t.float()
+        intersection = torch.sum(p.sigmoid() * t)
+        denominator = torch.sum(p.sigmoid()) + torch.sum(t) 
+        dice = (2. * intersection + self.eps) / (denominator + self.eps)
+        dice_loss = 1 - dice
+        bce_loss = F.binary_cross_entropy_with_logits(p, t, pos_weight=torch.tensor(self.seg_pos_weight))
+        return {"seg_loss": 1.0 * dice_loss + 1.0 * bce_loss, "dice_loss": dice_loss, "bce_loss": bce_loss}
+
+
+class L1LossDistCoordSeg(nn.Module):
+
+    def __init__(self, loss_weights=None, seg_pos_weight=None):
+        super().__init__()
+        self.loss_weights = torch.tensor(loss_weights) if not isinstance(loss_weights, type(None)) else torch.tensor([1., 1., 1.])
+        self.seg_pos_weight = torch.tensor(seg_pos_weight) if not isinstance(seg_pos_weight, type(None)) else 1.0
+        self.seg_loss = SigmoidDiceBCELoss()
+
+    def forward(self, p_seg, p, t_seg, t):
+        # p.shape will be 30 in order of: (rt_dist ... lt_dist ... rt_coord_x ... lt_coord_x ...)
+        dist_loss = (F.l1_loss(p[:, :10].float(), t[:, :10].float()) + F.mse_loss(p[:, :10].float(), t[:, :10].float()) / 10) / 2.
+        coord_loss = (F.l1_loss(p[:, 10:].sigmoid().float(), t[:, 10:].float()) + F.mse_loss(p[:, 10:].sigmoid().float(), t[:, 10:].float())) / 2.
+        seg_loss_dict = self.seg_loss(p_seg, t_seg)
+        loss_dict = {
+            "loss": self.loss_weights[0] * dist_loss + self.loss_weights[1] * coord_loss + self.loss_weights[2] * seg_loss_dict["seg_loss"], 
+            "dist_loss": dist_loss, 
+            "coord_loss": coord_loss, 
+        }
+        loss_dict.update(seg_loss_dict)
+        return loss_dict
+
+
+class L1LossDistCoordSegV2(nn.Module):
+
+    def __init__(self, loss_weights=None, seg_pos_weight=None):
+        super().__init__()
+        self.loss_weights = torch.tensor(loss_weights) if not isinstance(loss_weights, type(None)) else torch.tensor([1., 1., 1.])
+        self.seg_loss = SigmoidDiceBCELoss(seg_pos_weight=seg_pos_weight)
+
+    def forward(self, p_seg, p, t_seg, t):
+        assert p.shape[1] == 30
+        # p.shape will be 30 in order of: (rt_dist ... lt_dist ... rt_coord_x ... lt_coord_x ...)
+        dist_loss = (F.l1_loss(p[:, :10].float(), t[:, :10].float()) + F.mse_loss(p[:, :10].float(), t[:, :10].float()) / 10) / 2.
+        coord_loss = (F.l1_loss(p[:, 10:].sigmoid().float(), t[:, 10:].float()) + F.mse_loss(p[:, 10:].sigmoid().float(), t[:, 10:].float())) / 2.
+        seg_loss_dict = self.seg_loss(p_seg, t_seg)
+        loss_dict = {
+            "loss": self.loss_weights[0] * dist_loss + self.loss_weights[1] * coord_loss + self.loss_weights[2] * seg_loss_dict["seg_loss"], 
+            "dist_loss": dist_loss, 
+            "coord_loss": coord_loss, 
+        }
+        loss_dict.update(seg_loss_dict)
+        return loss_dict
+
+
+class L1LossDistCoordSegSpinalV2(nn.Module):
+
+    def __init__(self, loss_weights=None, seg_pos_weight=None):
+        super().__init__()
+        self.loss_weights = torch.tensor(loss_weights) if not isinstance(loss_weights, type(None)) else torch.tensor([1., 1., 1.])
+        self.seg_loss = SigmoidDiceBCELoss(seg_pos_weight=seg_pos_weight)
+
+    def forward(self, p_seg, p, t_seg, t):
+        assert p.shape[1] == 15
+        # p.shape will be 15 in order of: (dist, coord_x, coord_y)
+        dist_loss = (F.l1_loss(p[:, :5].float(), t[:, :5].float()) + F.mse_loss(p[:, :5].float(), t[:, :5].float()) / 10) / 2.
+        coord_loss = (F.l1_loss(p[:, 5:].sigmoid().float(), t[:, 5:].float()) + F.mse_loss(p[:, 5:].sigmoid().float(), t[:, 5:].float())) / 2.
+        seg_loss_dict = self.seg_loss(p_seg, t_seg)
+        loss_dict = {
+            "loss": self.loss_weights[0] * dist_loss + self.loss_weights[1] * coord_loss + self.loss_weights[2] * seg_loss_dict["seg_loss"], 
+            "dist_loss": dist_loss, 
+            "coord_loss": coord_loss, 
+        }
+        loss_dict.update(seg_loss_dict)
+        return loss_dict
+
+
+class L1LossDistanceAndCoordsSeq(nn.Module):
 
     def forward(self, p_dist, p_coord, t_dist, t_coord, mask):
-        # coord loss is easy because it's not a sequence prediction
         coord_loss_l1 = F.l1_loss(p_coord.sigmoid().float(), t_coord.float())
         coord_loss_l2 = F.mse_loss(p_coord.sigmoid().float(), t_coord.float())
-        dist_loss_l1 = F.l1_loss(p_dist[mask].float(), t_coord[mask].float())
-        dist_loss_l2 = F.mse_loss(p_dist[mask].float(), t_coord[mask].float())
+        # mask is 1 if padded, 0 if not padded, so need to negate mask for loss calculation
+        dist_loss_l1 = F.l1_loss(p_dist[~mask].float(), t_dist[~mask].float())
+        dist_loss_l2 = F.mse_loss(p_dist[~mask].float(), t_dist[~mask].float())
         coord_loss = (coord_loss_l1 + coord_loss_l2) / 2.
         dist_loss = (dist_loss_l1 + dist_loss_l2 / 10.) / 2.
         return {"loss": dist_loss + 100 * coord_loss, "dist_loss": dist_loss, "coord_loss": coord_loss}

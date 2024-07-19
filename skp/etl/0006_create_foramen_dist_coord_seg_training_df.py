@@ -9,6 +9,11 @@ foramen_df = df.loc[df.condition.apply(lambda x: "Foraminal" in x)]
 
 meta_df = pd.read_csv("../../data/dicom_metadata.csv")
 meta_df = meta_df.loc[meta_df.series_id.isin(foramen_df.series_id.tolist())]
+instance_to_position_index_dict = {}
+for series_id, series_df in meta_df.groupby("series_id"):
+	series_df = series_df.sort_values("ImagePositionPatient0", ascending=True)
+	series_df["position_index"] = np.arange(len(series_df))
+	instance_to_position_index_dict.update({f"{series_id}_{row.instance_number}": row.position_index for row in series_df.itertuples()})
 
 levels = ["l1_l2", "l2_l3", "l3_l4", "l4_l5", "l5_s1"]
 col_names = [f"rt_{_}" for _ in levels] + [f"lt_{_}" for _ in levels]
@@ -57,6 +62,10 @@ for c in col_names:
 folds_df = pd.read_csv("../../data/folds_cv5.csv")
 new_df = new_df.merge(folds_df, on="study_id")
 
-new_df["pngfile"] = new_df.study_id.astype("str") + "/" + new_df.series_id.astype("str") + "/" + new_df.instance_number.apply(lambda x: f"IM{x:06d}.png")
+pngfile = []
+for row in new_df.itertuples():
+	pngfile.append(f"{row.study_id}/{row.series_id}/IM{instance_to_position_index_dict[str(row.series_id) + '_' + str(row.instance_number)]:06d}_INST{row.instance_number:06d}.png")
+
+new_df["pngfile"] = pngfile
 
 new_df.to_csv("../../data/train_foramen_distance_each_level_with_foramen_coords.csv", index=False)

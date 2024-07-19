@@ -30,14 +30,15 @@ df["normal_mild"] = (df.grade == 0).astype("int")
 df["moderate"] = (df.grade == 1).astype("int")
 df["severe"] = (df.grade == 2).astype("int")
 
-coords_df = pd.read_csv("../../data/train_label_coordinates.csv")
-coords_df = coords_df.loc[coords_df.condition.apply(lambda x: "Subarticular" in x)]
-coords_df["study_side_level"] = coords_df.study_id.astype("str") + "_" + coords_df.condition.apply(lambda x: x[:1]) + "_" + coords_df.level.apply(lambda x: x.replace("/", "_"))
-df["study_side_level"] = df.study_id.astype("str") + "_" + df.laterality + "_" + df["level"]
+all_images = glob.glob("../../data/train_axial_subarticular_crops_3ch_v6/*/*.png")
+image_df = pd.DataFrame({"filepath": all_images})
+image_df["filepath"] = image_df.filepath.apply(lambda x: x.replace("../../data/train_axial_subarticular_crops_3ch_v6/", ""))
+image_df["study_id"] = image_df.filepath.apply(lambda x: x.split("/")[-2]).astype("int")
+image_df["laterality"] = image_df.filepath.apply(lambda x: os.path.basename(x)[:1])
+image_df["level"] = image_df.filepath.apply(lambda x: os.path.basename(x).replace(".png", "")[-5:])
 
-df = df.loc[df.study_side_level.isin(coords_df.study_side_level.tolist())]
-df["filepath"] = df.study_id.astype("str") + "/" + df.laterality + "T_" + df.level + ".png"
+df = df.merge(image_df, on=["study_id", "laterality", "level"])
 folds_df = pd.read_csv("../../data/folds_cv5.csv")
 df = df.merge(folds_df, on="study_id")
 
-df.to_csv("../../data/train_subarticular_crops_v4.csv", index=False)
+df.to_csv("../../data/train_subarticular_crops_v6.csv", index=False)

@@ -43,7 +43,7 @@ class Task(pl.LightningModule):
         out = self.model(batch, return_loss=True) 
         self.val_loss += [out["loss"]]
         for m in self.metrics:
-            m.update(out["logits"], batch["y"])
+            m.update(out.get("logits", None), batch.get("y", None))
         return out["loss"]
 
     def on_validation_epoch_end(self, *args, **kwargs):
@@ -66,10 +66,12 @@ class Task(pl.LightningModule):
             for k,v in metrics.items(): 
                 print(f"{k.ljust(max_strlen)} | {v.item() if isinstance(v, torch.Tensor) else v:.4f}")
 
-        for k,v in metrics.items():
-            self.logger.experiment[f"val/{k}"].append(v)
+        if self.trainer.state.stage != pl.trainer.states.RunningStage.SANITY_CHECKING: # don't log metrics during sanity check
 
-        self.log("val_metric", metrics["val_metric"], sync_dist=True)
+            for k,v in metrics.items():
+                self.logger.experiment[f"val/{k}"].append(v)
+
+            self.log("val_metric", metrics["val_metric"], sync_dist=True)
 
     def configure_optimizers(self):
         lr_scheduler = {

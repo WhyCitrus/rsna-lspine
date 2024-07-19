@@ -307,7 +307,7 @@ class Net(nn.Module):
             x = (x - mean) / sd
         return x 
 
-    def forward(self, batch, return_loss=False, return_features=False):
+    def forward(self, batch, return_loss=False, return_features=False, cls_only=False):
         x = batch["x"]
         y_cls = batch["y_cls"] if "y_cls" in batch else None
         y_seg = batch["y_seg"] if "y_seg" in batch else None
@@ -319,16 +319,19 @@ class Net(nn.Module):
         x = self.normalize(x) 
         feature_maps = [x] + self.encoder(x)
         features_cls = self.pooling(feature_maps[-1])
-        decoder_output = self.decoder(*feature_maps)
-        logits_seg = self.segmentation_head(decoder_output[-1])
         logits_cls = self.classification_head(features_cls)
-
+        if not cls_only:
+            decoder_output = self.decoder(*feature_maps)
+            logits_seg = self.segmentation_head(decoder_output[-1])
+        else:    
+            logits_seg = None
+            
         out = {"logits_seg": logits_seg, "logits_cls": logits_cls}
 
         if return_features:
             out["features"] = feature_maps, features_cls 
         if return_loss: 
-            if self.cfg.deep_supervision:
+            if self.cfg.deep_supervision and not cls_only:
                 # TODO: figure out deep supervision with combined segmentation/classification loss
                 level1 = self.aux_segmentation_head1(decoder_output[-2])
                 level2 = self.aux_segmentation_head2(decoder_output[-3])

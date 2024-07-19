@@ -93,20 +93,21 @@ class IterationBasedSampler(Sampler):
         self.num_iterations = cfg.num_iterations_per_epoch
         self.total_iterations = self.num_iterations * self.batch_size * cfg.world_size
         self.available_indices = list(range(self.len_dataset))
+        self.unavailable_indices = []
 
     def __len__(self):
         return self.total_iterations
 
     def __iter__(self):
         num_samples = self.total_iterations
-        sampled_indices = []
-        while num_samples > len(sampled_indices):
-            sampled_index = np.random.choice(self.available_indices)
-            sampled_indices.append(sampled_index)
-            self.available_indices.remove(sampled_index)
+        iteration_indices = []
+        while num_samples > len(iteration_indices):
+            sampled_indices = np.random.choice(self.available_indices, min(num_samples, len(self.available_indices)), replace=False)
+            iteration_indices.extend(list(sampled_indices))
+            self.available_indices = list(set(self.available_indices) - set(iteration_indices))
             if len(self.available_indices) == 0:
                 self.available_indices = list(range(self.len_dataset))
-        return iter(sampled_indices)
+        return iter(iteration_indices)
 
 
 class Subsampler(Sampler):

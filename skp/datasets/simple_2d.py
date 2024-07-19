@@ -23,6 +23,13 @@ class Dataset(TorchDataset):
         elif self.mode == "val":
             df = df.drop_duplicates().reset_index(drop=True)
             df = df[df.fold == self.cfg.fold]
+            if "with_augs" in self.cfg.annotations_file:
+                # should ignore the generated aug images and only 
+                # do validation on the original images
+                df = df.loc[df.filepath.apply(lambda x: x.endswith("_000.png"))].reset_index(drop=True)
+                df = df.iloc[1::3]
+            if "ignore_during_val" in df.columns:
+                df = df[df.ignore_during_val == 0]
             self.transforms = self.cfg.val_transforms
 
         self.df = df.reset_index(drop=True)

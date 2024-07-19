@@ -26,8 +26,8 @@ cfg.normalization = "-1_1"
 cfg.normalization_params = {"min": 0, "max": 255}
 
 cfg.fold = 0 
-cfg.dataset = "simple_3d"
-cfg.data_dir = "/mnt/stor/datasets/spr-head-ct-age-prediction/"
+cfg.dataset = "simple_lspine_3d_png"
+cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_images/"
 cfg.annotations_file = cfg.data_dir + "train_kfold.csv"
 cfg.inputs = "filename"
 cfg.targets = ["Age"]

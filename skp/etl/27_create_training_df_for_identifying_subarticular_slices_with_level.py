@@ -51,6 +51,7 @@ for series_id, series_df in df.groupby("series_id"):
 	df_list.append(tmp_meta_df[["study_id", "series_id", "instance_number", "SliceLocation", "assigned_level", "subarticular_slice_present"]])
 
 new_df = pd.concat(df_list)
+new_df = new_df.loc[~new_df.assigned_level.isna()]
 for each_level in new_df.assigned_level.unique():
 	new_df[each_level] = (new_df.assigned_level == each_level).astype("int")
 
