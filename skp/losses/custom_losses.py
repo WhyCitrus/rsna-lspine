@@ -40,6 +40,34 @@ def torch_log_loss(p, t):
     return loss.sum()
 
 
+
+def torch_log_loss_with_logits(logits, t, w=None):
+    loss = (-t.float() * F.log_softmax(logits, dim=1)).sum(1)
+    if isinstance(w, torch.Tensor):
+        loss = loss * w
+        return loss.sum() / w.sum()
+    else:
+        return loss.mean()
+
+
+class WeightedLogLossWithLogits(nn.Module):
+
+    @staticmethod
+    def torch_log_loss_with_logits(logits, t, w=None):
+        loss = (-t * F.log_softmax(logits, dim=1)).sum(1)
+        if isinstance(w, torch.Tensor):
+            loss = loss * w
+            return loss.sum() / w.sum()
+        else:
+            return loss.mean()
+
+    def forward(self, p, t):
+        w = torch.ones((len(p), )).to(p.device)
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        return self.torch_log_loss_with_logits(p.float(), t.float(), w=w)
+
+
 class SampleWeightedLogLossV3(nn.BCEWithLogitsLoss):
 
     def forward(self, p, t):
@@ -177,6 +205,95 @@ class L1LossDistCoordSegV2(nn.Module):
             "dist_loss": dist_loss, 
             "coord_loss": coord_loss, 
         }
+        loss_dict.update(seg_loss_dict)
+        return loss_dict
+
+
+class L1LossDistCoordSegV3(nn.Module):
+    # Only calculate coordinate loss for slices and adjacent slices with foramen
+    # Coordinate labels will be -1 for those without foramen
+    def __init__(self, loss_weights=None, seg_pos_weight=None):
+        super().__init__()
+        self.loss_weights = torch.tensor(loss_weights) if not isinstance(loss_weights, type(None)) else torch.tensor([1., 1., 1.])
+        self.seg_loss = SigmoidDiceBCELoss(seg_pos_weight=seg_pos_weight)
+
+    def dist_loss(self, p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        p, t = p.float(), t.float()
+        l1_loss, l2_loss = F.l1_loss(p, t), F.mse_loss(p, t)
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"dist_loss_l1": l1_loss, "dist_loss_l2": l2_loss, "dist_loss": F.smooth_l1_loss(p, t)}
+
+    @staticmethod
+    def coord_loss(p, t):
+        p_sigmoid, t = p.sigmoid().float(), t.float()
+        # calculate L1 and L2 losses for tracking, but use average of MAE and MSE for optimization
+        l1_loss, l2_loss = F.l1_loss(p_sigmoid, t), F.mse_loss(p_sigmoid, t)
+        return {"coord_loss_l1": l1_loss, "coord_loss_l2": l2_loss, "coord_loss": (l1_loss + l2_loss) / 2.}
+
+    def forward(self, p_seg, p, t_seg, t):
+        assert p.shape[1] == t.shape[1] == 30
+        # p.shape will be 30 in order of: (rt_dist ... lt_dist ... rt_coord_x ... lt_coord_x ...)
+        dist_loss_dict = self.dist_loss(p[:, :10], t[:, :10])
+        coord_mask = t[:, 10:] == -1
+        if coord_mask.sum().item() == coord_mask.shape[0] * coord_mask.shape[1]:
+            # in the rare event that there are no valid coord losses in the batch
+            coord_loss = torch.tensor(0.).to(p.device)
+            coord_loss_dict = {k: coord_loss for k in ["coord_loss_l1", "coord_loss_l2", "coord_loss"]}
+        else:
+            coord_loss_dict = self.coord_loss(p[:, 10:][~coord_mask], t[:, 10:][~coord_mask])
+        seg_loss_dict = self.seg_loss(p_seg, t_seg)
+        loss_dict = {
+            "loss": self.loss_weights[0] * dist_loss_dict["dist_loss"] + \
+                    self.loss_weights[1] * coord_loss_dict["coord_loss"] + \
+                    self.loss_weights[2] * seg_loss_dict["seg_loss"]
+        }
+        loss_dict.update(dist_loss_dict)
+        loss_dict.update(coord_loss_dict)
+        loss_dict.update(seg_loss_dict)
+        return loss_dict
+
+
+class L1LossDistCoordSegSpinalV3(nn.Module):
+
+    def __init__(self, loss_weights=None, seg_pos_weight=None):
+        super().__init__()
+        self.loss_weights = torch.tensor(loss_weights) if not isinstance(loss_weights, type(None)) else torch.tensor([1., 1., 1.])
+        self.seg_loss = SigmoidDiceBCELoss(seg_pos_weight=seg_pos_weight)
+
+    def dist_loss(self, p, t):
+        assert p.shape[1] == t.shape[1] == 5
+        p, t = p.float(), t.float()
+        l1_loss, l2_loss = F.l1_loss(p, t), F.mse_loss(p, t)
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"dist_loss_l1": l1_loss, "dist_loss_l2": l2_loss, "dist_loss": F.smooth_l1_loss(p, t)}
+
+    @staticmethod
+    def coord_loss(p, t):
+        p_sigmoid, t = p.sigmoid().float(), t.float()
+        # calculate L1 and L2 losses for tracking, but use average of MAE and MSE for optimization
+        l1_loss, l2_loss = F.l1_loss(p_sigmoid, t), F.mse_loss(p_sigmoid, t)
+        return {"coord_loss_l1": l1_loss, "coord_loss_l2": l2_loss, "coord_loss": (l1_loss + l2_loss) / 2.}
+
+    def forward(self, p_seg, p, t_seg, t):
+        assert p.shape[1] == t.shape[1] == 15
+        # p.shape will be 15 in order of: (dist ... coord_x ... coord_y ...)
+        dist_loss_dict = self.dist_loss(p[:, :5], t[:, :5])
+        coord_mask = t[:, 5:] == -1
+        if coord_mask.sum().item() == coord_mask.shape[0] * coord_mask.shape[1]:
+            # in the rare event that there are no valid coord losses in the batch
+            coord_loss = torch.tensor(0.).to(p.device)
+            coord_loss_dict = {k: coord_loss for k in ["coord_loss_l1", "coord_loss_l2", "coord_loss"]}
+        else:
+            coord_loss_dict = self.coord_loss(p[:, 5:][~coord_mask], t[:, 5:][~coord_mask])
+        seg_loss_dict = self.seg_loss(p_seg, t_seg)
+        loss_dict = {
+            "loss": self.loss_weights[0] * dist_loss_dict["dist_loss"] + \
+                    self.loss_weights[1] * coord_loss_dict["coord_loss"] + \
+                    self.loss_weights[2] * seg_loss_dict["seg_loss"]
+        }
+        loss_dict.update(dist_loss_dict)
+        loss_dict.update(coord_loss_dict)
         loss_dict.update(seg_loss_dict)
         return loss_dict
 

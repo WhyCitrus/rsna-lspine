@@ -232,6 +232,38 @@ class CompetitionMetric(_BaseMetric):
         return {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
 
 
+class CompetitionMetricWithSoftmaxTorch(_BaseMetric):
+
+    @staticmethod
+    def torch_log_loss_with_logits(logits, t, w=None):
+        loss = (-t * F.log_softmax(logits, dim=1)).sum(1)
+        if isinstance(w, torch.Tensor):
+            loss = loss * w
+            return loss.sum() / w.sum()
+        else:
+            return loss.mean()
+
+    def compute(self):
+        p = torch.cat(self.p, dim=0).cpu()
+        t = torch.cat(self.t, dim=0).cpu()
+        wts = torch.ones((len(p), ))
+        wts[t[:, 1] == 1] = 2
+        wts[t[:, 2] == 1] = 4
+        return {"comp_loss_torch": self.torch_log_loss_with_logits(p.float(), t.float(), w=wts)}
+
+
+class CompetitionMetricWithSoftmax(_BaseMetric):
+
+    def compute(self):
+        p = F.softmax(torch.cat(self.p, dim=0).cpu(), dim=1)
+        p = p.numpy()
+        t = torch.cat(self.t, dim=0).cpu().numpy()
+        wts = np.ones((len(p), ))
+        wts[t[:, 1] == 1] = 2
+        wts[t[:, 2] == 1] = 4
+        return {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
+
+
 class CompetitionMetricTorchAndNumpy(_BaseMetric):
 
     def compute(self):

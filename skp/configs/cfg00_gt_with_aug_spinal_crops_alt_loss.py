@@ -38,7 +38,7 @@ cfg.channel_reverse = True
 cfg.sampler = "IterationBasedSampler"
 cfg.num_iterations_per_epoch = 500
 
-cfg.loss = "SampleWeightedLogLossV3"
+cfg.loss = "WeightedLogLossWithLogits"
 cfg.loss_params = {}
 
 cfg.batch_size = 32
@@ -51,7 +51,7 @@ cfg.scheduler_params = {"eta_min": 0}
 cfg.scheduler_interval = "step"
 
 cfg.val_batch_size = cfg.batch_size * 2
-cfg.metrics = ["AUROC", "CompetitionMetric", "CompetitionMetricTorch"]
+cfg.metrics = ["AUROC", "CompetitionMetricWithSoftmax", "CompetitionMetricWithSoftmaxTorch"]
 cfg.val_metric = "loss"
 cfg.val_track = "min"
 
