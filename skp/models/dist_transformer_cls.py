@@ -30,7 +30,7 @@ class Net(nn.Module):
         self.transformer = nn.TransformerEncoder(layer, 
             num_layers=cfg.transformer_num_layers)
 
-        self.linear = nn.Linear(cfg.transformer_d_model, cfg.num_classes or 10)
+        self.linear = nn.Linear(cfg.transformer_d_model, cfg.num_classes)
 
     def forward(self, batch, return_loss=False, return_features=False):
         x = batch["x"]
@@ -45,13 +45,14 @@ class Net(nn.Module):
         #positions = self.position_encoder(positions, src_key_padding_mask=mask)
         features = torch.cat([features, positions], dim=2)
         features = self.transformer(features, src_key_padding_mask=mask)
+        features = features[:, 0]
         logits = self.linear(features)
 
         out = {"logits": logits}
         if return_features:
             out["features"] = features 
         if return_loss: 
-            loss = self.criterion(logits, y, mask)
+            loss = self.criterion(logits, y)
             if isinstance(loss, dict):
                 out.update(loss)
             else:
