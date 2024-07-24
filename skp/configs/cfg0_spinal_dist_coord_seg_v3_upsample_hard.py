@@ -21,7 +21,7 @@ cfg.pool_params = dict(p=3)
 cfg.seg_dropout = 0.5
 cfg.cls_dropout = 0.5
 cfg.seg_num_classes = 5
-cfg.cls_num_classes = 30
+cfg.cls_num_classes = 15
 cfg.decoder_channels = [256, 128, 64, 32, 16]
 cfg.decoder_n_blocks = 5
 cfg.decoder_norm_layer = "bn"
@@ -34,18 +34,18 @@ cfg.normalization_params = {"min": 0, "max": 255}
 cfg.fold = 0 
 cfg.dataset = "foramen_dist_coord_seg"
 cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_pngs_3ch/"
-cfg.seg_dir = "/home/ian/projects/rsna-lspine/data/train_foramina_segmentation_maps_smaller/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_foramen_dist_each_level_with_coords_and_ignore_upsample_hard_cases.csv"
+cfg.seg_dir = "/home/ian/projects/rsna-lspine/data/train_spinal_segmentation_maps_smaller/"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_spinal_dist_each_level_with_coords_and_ignore_upsample_hard_cases.csv"
 cfg.inputs = "pngfile"
 levels = ["l1_l2", "l2_l3", "l3_l4", "l4_l5", "l5_s1"]
-cfg.targets = [f"rt_{_}_no_rescale" for _ in levels] + [f"lt_{_}_no_rescale" for _ in levels]
-cfg.targets += [f"rt_{_}_foramen_coord_x" for _ in levels] + [f"lt_{_}_foramen_coord_x" for _ in levels]
-cfg.targets += [f"rt_{_}_foramen_coord_y" for _ in levels] + [f"lt_{_}_foramen_coord_y" for _ in levels]
+cfg.targets = [f"{_}_no_rescale" for _ in levels]
+cfg.targets += [f"{_}_spinal_coord_x" for _ in levels]
+cfg.targets += [f"{_}_spinal_coord_y" for _ in levels]
 cfg.cv2_load_flag = cv2.IMREAD_COLOR
 cfg.num_workers = 10
 cfg.pin_memory = True
 
-cfg.loss = "L1LossDistCoordSegV3"
+cfg.loss = "L1LossDistCoordSegSpinalV3"
 cfg.loss_params = {"loss_weights": [1., 100., 1.], "seg_pos_weight": 10000}
 cfg.deep_supervision = False
 
@@ -65,8 +65,8 @@ cfg.val_track = "min"
 
 # Avoid changing image dimensions via command line args
 # if using these vars later (e.g., in crop transforms)
-cfg.image_height = 512
-cfg.image_width = 512
+cfg.image_height = 256
+cfg.image_width = 256
 
 cfg.train_transforms = A.Compose([
     A.Resize(cfg.image_height, cfg.image_width, p=1),
