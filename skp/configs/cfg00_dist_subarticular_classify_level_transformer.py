@@ -29,13 +29,13 @@ cfg.num_workers = 14
 cfg.pin_memory = True
 cfg.sampler = "IterationBasedSampler"
 cfg.num_iterations_per_epoch = 1000
-cfg.max_seq_len = 64
+cfg.max_seq_len = 72
 
 cfg.loss = "BCEWithLogitsLoss"
 cfg.loss_params = {}
 
 cfg.batch_size = 128
-cfg.num_epochs = 10
+cfg.num_epochs = 5
 cfg.optimizer = "AdamW"
 cfg.optimizer_params = {"lr": 3e-4}
 

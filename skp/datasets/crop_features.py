@@ -24,8 +24,8 @@ class Dataset(TorchDataset):
             df = df[df.fold == self.cfg.fold]
             self.transforms = self.cfg.val_transforms
 
-        self.inputs = df.features.tolist()
-        self.labels = df.labels.tolist() 
+        self.inputs = df[self.cfg.input].tolist()
+        self.labels = df[self.cfg.targets].values
 
         self.collate_fn = train_collate_fn if mode == "train" else val_collate_fn
 
@@ -38,7 +38,7 @@ class Dataset(TorchDataset):
     def get(self, i):
         try:
             x = np.load(os.path.join(self.cfg.data_dir, self.inputs[i]))
-            y = np.load(os.path.join(self.cfg.data_dir, self.labels[i]))
+            y = self.labels[i]
             return x, y
         except Exception as e:
             print(e)
@@ -51,25 +51,14 @@ class Dataset(TorchDataset):
             data = self.get(i)
 
         x, y = data
+        if self.mode == "train" and np.random.binomial(1, 0.5) and self.cfg.reverse_seq_aug:
+            x = np.ascontiguousarray(x[::-1])
 
-        if self.mode == "train":
-            max_len = self.cfg.max_seq_len
-            if x.shape[0] > max_len:
-                x, y = x[:max_len], y[:max_len]
-                mask = torch.tensor([False] * max_len) # True indicates padding token
-            elif x.shape[0] < max_len:
-                diff = max_len - x.shape[0]
-                orig_len = x.shape[0]
-                x_pad = np.zeros((diff, x.shape[1]))
-                y_pad = np.zeros((diff, y.shape[1]))
-                x, y = np.concatenate([x, x_pad]), np.concatenate([y, y_pad])
-                mask = torch.concatenate([torch.tensor([False] * orig_len), torch.tensor([True] * diff)])
-                assert len(mask) == len(x) == len(y)
-            else:
-                mask = torch.tensor([False] * max_len)
-        else:
-            # if val, we use batch size 1 so no need to pad
-            mask = torch.tensor([False] * len(x))
+        if self.mode == "train" and np.random.binomial(1, 0.5) and self.cfg.shuffle_seq_aug:
+            x = x[np.random.permutation(np.arange(len(x))).astype("int")]
+
+        # should all be length 27 so no padding tokens are needed
+        mask = torch.tensor([False] * len(x))
 
         x = torch.tensor(x).float()
         y = torch.tensor(y).float()

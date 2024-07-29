@@ -19,18 +19,19 @@ cfg.transformer_dim_feedforward = cfg.transformer_d_model * 4
 cfg.transformer_dropout = 0.5
 cfg.transformer_activation = "gelu"
 cfg.transformer_num_layers = 4
+cfg.num_classes = 5
 
 cfg.fold = 0 
 cfg.dataset = "dist_position_features"
-cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_subarticular_dist_coord_features_v2/foldx/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_subarticular_dist_coord_features.csv"
+cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_spinal_dist_coord_features_v3/foldx/"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_spinal_dist_coord_features_v3.csv"
 cfg.num_workers = 14
 cfg.pin_memory = True
 cfg.sampler = "IterationBasedSampler"
 cfg.num_iterations_per_epoch = 1000
-cfg.max_seq_len = 72
+cfg.max_seq_len = 48
 
-cfg.loss = "MaskedSmoothL1LossSubarticular"
+cfg.loss = "MaskedSmoothL1Loss"
 cfg.loss_params = {}
 
 cfg.batch_size = 128

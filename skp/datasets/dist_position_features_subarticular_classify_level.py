@@ -63,6 +63,11 @@ class Dataset(TorchDataset):
         try:
             x = np.load(os.path.join(self.cfg.data_dir, self.inputs[i]))
             x, y = self.sample_level(self.labels[i], x)
+            if len(x) > self.cfg.max_seq_len: 
+                if len(x) <= self.cfg.max_seq_len * 2:
+                    x = np.ascontiguousarray(x[::2])
+                elif len(x) <= self.cfg.max_seq_len * 3:
+                    x = np.ascontiguousarray(x[::3])
             return x, y
         except Exception as e:
             print(e)

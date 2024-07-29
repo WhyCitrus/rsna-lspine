@@ -22,8 +22,8 @@ cfg.transformer_num_layers = 4
 
 cfg.fold = 0 
 cfg.dataset = "dist_position_features"
-cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_subarticular_dist_coord_features_v2/foldx/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_subarticular_dist_coord_features.csv"
+cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_subarticular_dist_coord_features_v3/foldx/"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_subarticular_dist_coord_features_v3.csv"
 cfg.num_workers = 14
 cfg.pin_memory = True
 cfg.sampler = "IterationBasedSampler"

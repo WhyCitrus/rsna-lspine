@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
@@ -291,6 +292,124 @@ class CompetitionMetricBilat(_BaseMetric):
         wts[t[:, 1] == 1] = 2
         wts[t[:, 2] == 1] = 4
         return {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
+
+
+class CompetitionMetricPlusAUROCMultiAug(tm.Metric):
+
+    def __init__(self, cfg, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+
+        self.add_state("p", default=[], dist_reduce_fx=None)
+        self.add_state("t", default=[], dist_reduce_fx=None)
+        self.add_state("unique_id", default=[], dist_reduce_fx=None)
+
+    def update(self, p, t, unique_id):
+        self.p.append(p)
+        self.t.append(t)
+        self.unique_id.append(unique_id)
+
+    def compute(self):
+        p = F.softmax(torch.cat(self.p, dim=0).cpu().float(), dim=1).numpy()
+        t = torch.cat(self.t).cpu().numpy()
+        wts = np.ones((len(p), ))
+        wts[t[:, 1] == 1] = 2
+        wts[t[:, 2] == 1] = 4
+        metrics_dict = {}
+        metrics_dict["loss_crop"] = skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)
+        for c in range(p.shape[1]):
+            metrics_dict[f"auc_crop{c}"] = _roc_auc_score(t=t[:, c], p=p[:, c])
+        metrics_dict["auc_crop_mean"] = np.mean([v for k, v in metrics_dict.items() if "auc_crop" in k])
+        # Take mean and median of crop augs
+        tmp_df = pd.DataFrame({
+            "p0": p[:, 0], "p1": p[:, 1], "p2": p[:, 2], 
+            "t0": t[:, 0], "t1": t[:, 1], "t2": t[:, 2],  
+            "wts": wts, 
+            "unique_id": torch.cat(self.unique_id).cpu().numpy()
+        })
+        df_by_mean = tmp_df.groupby("unique_id").mean() 
+        df_by_median = tmp_df.groupby("unique_id").median()
+        metrics_dict["loss_mean"] = skm.log_loss(y_true=df_by_mean[["t0", "t1", "t2"]].values, 
+                                                 y_pred=df_by_mean[["p0", "p1", "p2"]].values, 
+                                                 sample_weight=df_by_mean.wts.values)
+        for c in range(p.shape[1]):
+            metrics_dict[f"auc_meanagg{c}"] = _roc_auc_score(t=df_by_mean[f"t{c}"].values, p=df_by_mean[f"p{c}"].values)
+        metrics_dict["auc_meanagg_mean"] = np.mean([v for k, v in metrics_dict.items() if "auc_meanagg" in k])
+        metrics_dict["loss_median"] = skm.log_loss(y_true=df_by_median[["t0", "t1", "t2"]].values, 
+                                                   y_pred=df_by_median[["p0", "p1", "p2"]].values, 
+                                                   sample_weight=df_by_median.wts.values)
+        for c in range(p.shape[1]):
+            metrics_dict[f"auc_medianagg{c}"] = _roc_auc_score(t=df_by_median[f"t{c}"].values, p=df_by_median[f"p{c}"].values)
+        metrics_dict["auc_medianagg_mean"] = np.mean([v for k, v in metrics_dict.items() if "auc_medianagg" in k])
+        return metrics_dict
+
+
+class CompetitionMetricPlusAUROCMultiAugSigmoid(tm.Metric):
+
+    def __init__(self, cfg, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+
+        self.add_state("p", default=[], dist_reduce_fx=None)
+        self.add_state("t", default=[], dist_reduce_fx=None)
+        self.add_state("unique_id", default=[], dist_reduce_fx=None)
+
+    def update(self, p, t, unique_id):
+        self.p.append(p)
+        self.t.append(t)
+        self.unique_id.append(unique_id)
+
+    def compute(self):
+        p = torch.cat(self.p).sigmoid().cpu().float().numpy()
+        t = torch.cat(self.t).cpu().numpy()
+        wts = np.ones((len(p), ))
+        wts[t[:, 1] == 1] = 2
+        wts[t[:, 2] == 1] = 4
+        metrics_dict = {}
+        metrics_dict["loss_crop"] = skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)
+        for c in range(p.shape[1]):
+            metrics_dict[f"auc_crop{c}"] = _roc_auc_score(t=t[:, c], p=p[:, c])
+        metrics_dict["auc_crop_mean"] = np.mean([v for k, v in metrics_dict.items() if "auc_crop" in k])
+        # Take mean and median of crop augs
+        tmp_df = pd.DataFrame({
+            "p0": p[:, 0], "p1": p[:, 1], "p2": p[:, 2], 
+            "t0": t[:, 0], "t1": t[:, 1], "t2": t[:, 2],  
+            "wts": wts, 
+            "unique_id": torch.cat(self.unique_id).cpu().numpy()
+        })
+        df_by_mean = tmp_df.groupby("unique_id").mean() 
+        df_by_median = tmp_df.groupby("unique_id").median()
+        metrics_dict["loss_mean"] = skm.log_loss(y_true=df_by_mean[["t0", "t1", "t2"]].values, 
+                                                 y_pred=df_by_mean[["p0", "p1", "p2"]].values, 
+                                                 sample_weight=df_by_mean.wts.values)
+        for c in range(p.shape[1]):
+            metrics_dict[f"auc_meanagg{c}"] = _roc_auc_score(t=df_by_mean[f"t{c}"].values, p=df_by_mean[f"p{c}"].values)
+        metrics_dict["auc_meanagg_mean"] = np.mean([v for k, v in metrics_dict.items() if "auc_meanagg" in k])
+        metrics_dict["loss_median"] = skm.log_loss(y_true=df_by_median[["t0", "t1", "t2"]].values, 
+                                                   y_pred=df_by_median[["p0", "p1", "p2"]].values, 
+                                                   sample_weight=df_by_median.wts.values)
+        for c in range(p.shape[1]):
+            metrics_dict[f"auc_medianagg{c}"] = _roc_auc_score(t=df_by_median[f"t{c}"].values, p=df_by_median[f"p{c}"].values)
+        metrics_dict["auc_medianagg_mean"] = np.mean([v for k, v in metrics_dict.items() if "auc_medianagg" in k])
+        return metrics_dict
+
+
+class CompetitionMetricPlusAUROCWholeSpinal(_BaseMetric):
+
+    def compute(self):
+        p = torch.cat(self.p, dim=0)[:, :15]
+        t = torch.cat(self.t, dim=0)[:, :15]
+        p = torch.cat([p[:, :3], p[:, 3:6], p[:, 6:9], p[:, 9:12], p[:, 12:15]], dim=0)
+        t = torch.cat([t[:, :3], t[:, 3:6], t[:, 6:9], t[:, 9:12], t[:, 12:15]], dim=0)
+        p = F.softmax(p, dim=1).cpu().numpy()
+        t = t.cpu().numpy()
+        wts = np.ones((len(p), ))
+        wts[t[:, 1] == 1] = 2
+        wts[t[:, 2] == 1] = 4
+        metrics_dict = {}
+        metrics_dict["comp_loss"] = skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)
+        for c in range(p.shape[1]):
+            metrics_dict[f"auc{c}"] = _roc_auc_score(t=t[:, c], p=p[:, c])
+        metrics_dict["auc_mean"] = np.mean([v for k, v in metrics_dict.items() if "auc" in k])
+        return metrics_dict
 
 
 class SubarticularLevelsAndCoords(tm.Metric):

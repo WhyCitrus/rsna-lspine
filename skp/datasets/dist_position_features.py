@@ -39,6 +39,13 @@ class Dataset(TorchDataset):
         try:
             x = np.load(os.path.join(self.cfg.data_dir, self.inputs[i]))
             y = np.load(os.path.join(self.cfg.data_dir, self.labels[i]))
+            if len(x) > self.cfg.max_seq_len: 
+                if len(x) <= self.cfg.max_seq_len * 2:
+                    x = np.ascontiguousarray(x[::2])
+                    y = np.ascontiguousarray(y[::2])
+                elif len(x) <= self.cfg.max_seq_len * 3:
+                    x = np.ascontiguousarray(x[::3])
+                    y = np.ascontiguousarray(y[::3])
             return x, y
         except Exception as e:
             print(e)
@@ -64,7 +71,7 @@ class Dataset(TorchDataset):
                 y_pad = np.zeros((diff, y.shape[1]))
                 x, y = np.concatenate([x, x_pad]), np.concatenate([y, y_pad])
                 mask = torch.concatenate([torch.tensor([False] * orig_len), torch.tensor([True] * diff)])
-                assert len(mask) == len(x) == len(y)
+                assert len(mask) == len(x) == len(y), f"len(mask) is {len(mask)}, len(x) is {len(x)}, len(y) is {len(y)}"
             else:
                 mask = torch.tensor([False] * max_len)
         else:

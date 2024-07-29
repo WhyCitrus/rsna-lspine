@@ -69,7 +69,7 @@ python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0
 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 python train.py cfg0_spinal_dist_coord_seg_v3_upsample_hard --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_subarticular_dist_coord_seg_v3 --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg000_genv3_subarticular_crops_without_augs --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 
 
 python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 0
@@ -89,13 +89,25 @@ ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchn
 ts --gpus 2 python train.py cfg0_retinanet_mobilenetv3_foramen --sync_batchnorm --benchmark --fold 4
 ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 4
 
-ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v3_imputed --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v3 --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v3 --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v3 --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v3 --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 0 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 1 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 2 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 3 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 4 --num_epochs 5
 
-ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 0 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 1 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 2 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 3 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 4 --num_epochs 5
+
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 0 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 1 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 2 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 3 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 4 --num_epochs 5
+
+ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_v4_upsample_hard --sync_batchnorm --benchmark --fold 0
 ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 1
 ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 2
 ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 3

@@ -170,7 +170,10 @@ def get_trainer(cfg, args):
         strategy = cfg.args["strategy"]
         plugins = None
 
-    neptune_logger = NeptuneLogger(project=cfg.project, source_files=[f"configs/{cfg.config}.py", f"models/{cfg.model}.py", f"datasets/{cfg.dataset}.py"], mode=cfg.neptune_mode)
+    neptune_logger = NeptuneLogger(project=cfg.project, 
+                                   source_files=[f"configs/{cfg.config}.py", f"models/{cfg.model}.py", f"datasets/{cfg.dataset}.py"], 
+                                   mode=cfg.neptune_mode,
+                                   log_model_checkpoints=False)
     
     args_dict = args.__dict__
 

@@ -28,6 +28,17 @@ class SampleWeightedLogLossV2(nn.BCEWithLogitsLoss):
         return loss
 
 
+class SampleWeightedCrossEntropy(nn.CrossEntropyLoss):
+
+    def forward(self, p, t):
+        w = torch.ones((len(p), ))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        t = torch.argmax(t, dim=1)
+        loss = (F.cross_entropy(p.float(), t.long(), reduction="none") * w.float().to(p.device)).mean()
+        return loss
+
+
 def torch_log_loss(p, t):
     p = p.sigmoid()
     p = p / (p.sum(1).unsqueeze(1) + 1e-10)
@@ -66,6 +77,22 @@ class WeightedLogLossWithLogits(nn.Module):
         w[t[:, 1] == 1] = 2
         w[t[:, 2] == 1] = 4
         return self.torch_log_loss_with_logits(p.float(), t.float(), w=w)
+
+
+class WeightedLogLossWholeSpinalSeriesPlusCoords(WeightedLogLossWithLogits):
+
+    def forward(self, p, t):
+        p_grade, t_grade = p[:, :15], t[:, :15]
+        p_coord, t_coord = p[:, 15:], t[:, 15:]
+        p_grade = torch.cat([p_grade[:, :3], p_grade[:, 3:6], p_grade[:, 6:9], p_grade[:, 9:12], p_grade[:, 12:15]], dim=0)
+        t_grade = torch.cat([t_grade[:, :3], t_grade[:, 3:6], t_grade[:, 6:9], t_grade[:, 9:12], t_grade[:, 12:15]], dim=0)
+        w = torch.ones((len(p_grade), )).to(p.device)
+        w[t_grade[:, 1] == 1] = 2
+        w[t_grade[:, 2] == 1] = 4
+        loss_dict = {"grade_loss": self.torch_log_loss_with_logits(p_grade.float(), t_grade.float(), w=w)}
+        loss_dict["coord_loss"] = F.l1_loss(p_coord.sigmoid().float(), t_coord.float())
+        loss_dict["loss"] = loss_dict["grade_loss"] + loss_dict["coord_loss"]
+        return loss_dict
 
 
 class SampleWeightedLogLossV3(nn.BCEWithLogitsLoss):
