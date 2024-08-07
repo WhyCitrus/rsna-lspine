@@ -28,12 +28,30 @@ class Task(pl.LightningModule):
 
         self.logger.experiment["cfg"] = stringify_unsupported(self.cfg.__dict__)
 
-    def _apply_mixaug(self, X, y):
-        return apply_mixaug(X, y, self.mixaug)
+    def mixup(self, batch):
+        x, y =  batch["x"], batch["y"]
+        assert x.dtype == torch.float, f"x.dtype is {x.dtype}, not float"
+        assert y.dtype == torch.float, f"y.dtype is {y.dtype}, not float"
+        batch_size = y.size(0)
+        lamb = np.random.beta(self.cfg.mixup, self.cfg.mixup, batch_size)
+        lamb = torch.from_numpy(lamb)
+        if lamb.ndim < y.ndim:
+            for _ in range(y.ndim - lamb.ndim):
+                lamb = lamb.unsqueeze(-1)
+        permuted_indices = torch.randperm(batch_size)
+        ymix = lamb * y + (1 - lamb) * y[permuted_indices]
+        if lamb.ndim < x.ndim:
+            for _ in range(x.ndim - lamb.ndim):
+                lamb = lamb.unsqueeze(-1)
+        assert lamb.ndim == x.ndim, f"lamb has {lamb.ndim} dims whereas x has {x.ndim} dims"
+        xmix = lamb * x + (1 - lamb) * x[permuted_indices]
+        batch["x"] = xmix
+        batch["y"] = ymix
+        return batch
 
     def training_step(self, batch, batch_idx):             
-        # if isinstance(self.mixaug, dict):
-        #     X, y = self._apply_mixaug(X, y)
+        if self.cfg.mixup:
+            batch = self.mixup(batch)
         out = self.model(batch, return_loss=True) 
         for k, v in out.items():
             if "loss" in k:

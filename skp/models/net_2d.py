@@ -26,12 +26,17 @@ class Net(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
+        backbone_args = {
+            "pretrained": self.cfg.pretrained,
+            "num_classes": 0,
+            "global_pool": "",
+            "features_only": self.cfg.features_only,
+            "in_chans": self.cfg.num_input_channels
+        }
+        if self.cfg.backbone_img_size:
+            backbone_args["img_size"] = (self.cfg.image_height, self.cfg.image_width)
         self.backbone = create_model(self.cfg.backbone, 
-            pretrained=self.cfg.pretrained, 
-            num_classes=0, 
-            global_pool="", 
-            features_only=self.cfg.features_only,
-            in_chans=self.cfg.num_input_channels)
+            **backbone_args)
         self.dim_feats = self.backbone(torch.randn((2, self.cfg.num_input_channels, self.cfg.image_height, self.cfg.image_width))).size(1)
         self.dim_feats = self.dim_feats * (2 if self.cfg.pool == "catavgmax" else 1)
         self.pooling = self.get_pool_layer()

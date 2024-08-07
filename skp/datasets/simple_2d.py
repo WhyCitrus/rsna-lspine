@@ -35,7 +35,9 @@ class Dataset(TorchDataset):
         self.df = df.reset_index(drop=True)
         self.inputs = df[self.cfg.inputs].tolist()
         self.labels = df[self.cfg.targets].values 
-
+        if "sampling_weight" in df.columns:
+            self.sampling_weights = df.sampling_weight.values
+            
         self.collate_fn = train_collate_fn if mode == "train" else val_collate_fn
 
     def __len__(self):
@@ -64,11 +66,11 @@ class Dataset(TorchDataset):
         if self.cfg.channel_reverse and self.mode == "train" and bool(np.random.binomial(1, 0.5)):
             x = np.ascontiguousarray(x[:, :, ::-1])
 
-        if self.cfg.flip_lr and bool(np.random.binomial(1, 0.5)) and self.mode == "train":
-            # Mainly for training subarticular full slice model 
-            # If flip image then need to also flip the labels
-            x = np.fliplr(x)
-            y = y[[3, 4, 5, 0, 1, 2]]
+        # if self.cfg.flip_lr and bool(np.random.binomial(1, 0.5)) and self.mode == "train":
+        #     # Mainly for training subarticular full slice model 
+        #     # If flip image then need to also flip the labels
+        #     x = np.fliplr(x)
+        #     y = y[[3, 4, 5, 0, 1, 2]]
 
         x = self.transforms(image=x)["image"]
 

@@ -110,6 +110,24 @@ class IterationBasedSampler(Sampler):
         return iter(iteration_indices)
 
 
+class WeightedSampler(Sampler):
+
+    def __init__(self, dataset, cfg):
+        super().__init__()
+        self.len_dataset = len(dataset)
+        self.sampling_probas = dataset.sampling_weights / np.sum(dataset.sampling_weights)
+        assert self.sampling_probas.min() > 0
+        assert np.abs(1 - self.sampling_probas.sum() < 1e-6)
+        self.indices = np.arange(self.len_dataset)
+
+    def __len__(self):
+        return self.len_dataset
+
+    def __iter__(self):
+        sampled_indices = np.random.choice(self.indices, self.len_dataset, replace=True, p=self.sampling_probas)
+        return iter(sampled_indices)
+
+
 class Subsampler(Sampler):
     """
     This sampler is useful if you have a very large dataset, and you don't want

@@ -39,6 +39,18 @@ class SampleWeightedCrossEntropy(nn.CrossEntropyLoss):
         return loss
 
 
+class SampleWeightedCrossEntropyBilat(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        p, t = torch.cat([p[:, :3], p[:, 3:]], dim=0), torch.cat([t[:, :3], t[:, 3:]], dim=0)
+        w = torch.ones((len(p), ))
+        w[t[:, 1] == 1] = 2.0
+        w[t[:, 2] == 1] = 4.0 
+        w = w.to(p.device)
+        t = torch.argmax(t, dim=1)
+        return (F.cross_entropy(p.float(), t.long(), reduction="none") * w.float()).mean()
+
+
 def torch_log_loss(p, t):
     p = p.sigmoid()
     p = p / (p.sum(1).unsqueeze(1) + 1e-10)
@@ -345,6 +357,229 @@ class L1LossDistCoordSegV4(nn.Module):
         l1_loss, l2_loss = F.l1_loss(p, t), F.mse_loss(p, t)
         # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
         return {"dist_loss_l1": l1_loss, "dist_loss_l2": l2_loss, "dist_loss": F.smooth_l1_loss(p, t)}
+
+    @staticmethod
+    def coord_loss(p, t):
+        p_sigmoid, t = p.sigmoid().float(), t.float()
+        # calculate L1 and L2 losses for tracking, but use average of MAE and MSE for optimization
+        l1_loss, l2_loss = F.l1_loss(p_sigmoid, t), F.mse_loss(p_sigmoid, t)
+        return {"coord_loss_l1": l1_loss, "coord_loss_l2": l2_loss, "coord_loss": (l1_loss + l2_loss) / 2.}
+
+    def forward(self, p_seg, p, t_seg, t):
+        assert p.shape[1] == t.shape[1] == 20
+        # p.shape will be 30 in order of: (rt_dist ... lt_dist ... coord_x ... coord_x ...)
+        dist_loss_dict = self.dist_loss(p[:, :10], t[:, :10])
+        coord_mask = t[:, 10:] == -1
+        if coord_mask.sum().item() == coord_mask.shape[0] * coord_mask.shape[1]:
+            # in the rare event that there are no valid coord losses in the batch
+            coord_loss = torch.tensor(0.).to(p.device)
+            coord_loss_dict = {k: coord_loss for k in ["coord_loss_l1", "coord_loss_l2", "coord_loss"]}
+        else:
+            coord_loss_dict = self.coord_loss(p[:, 10:][~coord_mask], t[:, 10:][~coord_mask])
+        seg_loss_dict = self.seg_loss(p_seg, t_seg)
+        loss_dict = {
+            "loss": self.loss_weights[0] * dist_loss_dict["dist_loss"] + \
+                    self.loss_weights[1] * coord_loss_dict["coord_loss"] + \
+                    self.loss_weights[2] * seg_loss_dict["seg_loss"]
+        }
+        loss_dict.update(dist_loss_dict)
+        loss_dict.update(coord_loss_dict)
+        loss_dict.update(seg_loss_dict)
+        return loss_dict
+
+
+class L1LossDistOnly(nn.Module):
+
+    def forward(self, p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        p, t = p.float(), t.float()
+        l1_loss, l2_loss = F.l1_loss(p, t), F.mse_loss(p, t)
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"dist_loss_l1": l1_loss, "dist_loss_l2": l2_loss, "loss": F.smooth_l1_loss(p, t)}
+
+
+class L1DistAndBCE(nn.Module):
+
+    def dist_loss(self, p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        p, t = p.float(), t.float()
+        l1_loss, l2_loss = F.l1_loss(p, t), F.mse_loss(p, t)
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"dist_loss_l1": l1_loss, "dist_loss_l2": l2_loss, "dist_loss": F.smooth_l1_loss(p, t)}
+
+    def bce(self, p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        p, t = p.float(), t.float()
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"bce_loss": F.binary_cross_entropy_with_logits(p.float(), t.float())}
+
+    def forward(self, p, t):
+        dist_loss_dict = self.dist_loss(p[:, :10], t[:, :10])
+        bce_loss_dict = self.bce(p[:, 10:], t[:, 10:])
+        loss_dict = {"loss": dist_loss_dict["dist_loss"] + bce_loss_dict["bce_loss"]}
+        loss_dict.update(dist_loss_dict)
+        loss_dict.update(bce_loss_dict)
+        return loss_dict
+
+
+class L1DistCoordBCE(nn.Module):
+
+    def dist_loss(self, p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        p, t = p.float(), t.float()
+        l1_loss, l2_loss = F.l1_loss(p, t), F.mse_loss(p, t)
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"dist_loss_l1": l1_loss, "dist_loss_l2": l2_loss, "dist_loss": F.smooth_l1_loss(p, t)}
+
+    def bce(self, p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        p, t = p.float(), t.float()
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"bce_loss": F.binary_cross_entropy_with_logits(p.float(), t.float())}
+
+    @staticmethod
+    def coord_loss(p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        coord_mask = t == -1
+        if coord_mask.sum().item() == coord_mask.shape[0] * coord_mask.shape[1]:
+            # in the rare event that there are no valid coord losses in the batch
+            l1_loss = torch.tensor(0.).to(p.device)
+            l2_loss = torch.tensor(0.).to(p.device)
+        else:
+            p_sigmoid, t = p.sigmoid().float(), t.float()
+            # calculate L1 and L2 losses for tracking, but use average of MAE and MSE for optimization
+            l1_loss, l2_loss = F.l1_loss(p_sigmoid[~coord_mask], t[~coord_mask]), F.mse_loss(p_sigmoid[~coord_mask], t[~coord_mask])
+        return {"coord_loss_l1": l1_loss, "coord_loss_l2": l2_loss, "coord_loss": (l1_loss + l2_loss) / 2.}
+
+    def forward(self, p, t):
+        dist_loss_dict = self.dist_loss(p[:, :10], t[:, :10])
+        bce_loss_dict = self.bce(p[:, 10:20], t[:, 10:20])
+        coord_loss_dict = self.coord_loss(p[:, 20:], t[:, 20:])
+        loss_dict = {"loss": dist_loss_dict["dist_loss"] + bce_loss_dict["bce_loss"] + 100 * coord_loss_dict["coord_loss"]}
+        loss_dict.update(dist_loss_dict)
+        loss_dict.update(bce_loss_dict)
+        loss_dict.update(coord_loss_dict)
+        return loss_dict
+
+
+class L1DistCoordBCESpinal(nn.Module):
+
+    def dist_loss(self, p, t):
+        assert p.shape[1] == t.shape[1] == 5
+        p, t = p.float(), t.float()
+        l1_loss, l2_loss = F.l1_loss(p, t), F.mse_loss(p, t)
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"dist_loss_l1": l1_loss, "dist_loss_l2": l2_loss, "dist_loss": F.smooth_l1_loss(p, t)}
+
+    def bce(self, p, t):
+        assert p.shape[1] == t.shape[1] == 5
+        p, t = p.float(), t.float()
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"bce_loss": F.binary_cross_entropy_with_logits(p.float(), t.float())}
+
+    @staticmethod
+    def coord_loss(p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        coord_mask = t == -1
+        if coord_mask.sum().item() == coord_mask.shape[0] * coord_mask.shape[1]:
+            # in the rare event that there are no valid coord losses in the batch
+            l1_loss = torch.tensor(0.).to(p.device)
+            l2_loss = torch.tensor(0.).to(p.device)
+        else:
+            p_sigmoid, t = p.sigmoid().float(), t.float()
+            # calculate L1 and L2 losses for tracking, but use average of MAE and MSE for optimization
+            l1_loss, l2_loss = F.l1_loss(p_sigmoid[~coord_mask], t[~coord_mask]), F.mse_loss(p_sigmoid[~coord_mask], t[~coord_mask])
+        return {"coord_loss_l1": l1_loss, "coord_loss_l2": l2_loss, "coord_loss": (l1_loss + l2_loss) / 2.}
+
+    def forward(self, p, t):
+        dist_loss_dict = self.dist_loss(p[:, :5], t[:, :5])
+        bce_loss_dict = self.bce(p[:, 5:10], t[:, 5:10])
+        coord_loss_dict = self.coord_loss(p[:, 10:], t[:, 10:])
+        loss_dict = {"loss": dist_loss_dict["dist_loss"] + bce_loss_dict["bce_loss"] + 100 * coord_loss_dict["coord_loss"]}
+        loss_dict.update(dist_loss_dict)
+        loss_dict.update(bce_loss_dict)
+        loss_dict.update(coord_loss_dict)
+        return loss_dict
+
+
+class L1DistCoordBCESubarticular(nn.Module):
+
+    def dist_loss(self, p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        mask = t == -88888
+        if mask.sum().item() == mask.shape[0] * mask.shape[1]:
+            # in the rare event that there are no valid coord losses in the batch
+            l1_loss = torch.tensor(0.).to(p.device)
+            l2_loss = torch.tensor(0.).to(p.device)
+            loss = torch.tensor(0.).to(p.device)
+        else:
+            p, t = p.float(), t.float()
+            l1_loss, l2_loss = F.l1_loss(p[~mask], t[~mask]), F.mse_loss(p[~mask], t[~mask])
+            loss = F.smooth_l1_loss(p[~mask], t[~mask])
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"dist_loss_l1": l1_loss, "dist_loss_l2": l2_loss, "dist_loss": loss}
+
+    def bce(self, p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        p, t = p.float(), t.float()
+        # calculate L1 and L2 losses for tracking, but use smooth L1 loss for optimization
+        return {"bce_loss": F.binary_cross_entropy_with_logits(p.float(), t.float())}
+
+    @staticmethod
+    def coord_loss(p, t):
+        assert p.shape[1] == t.shape[1] == 4
+        mask = t == -88888
+        if mask.sum().item() == mask.shape[0] * mask.shape[1]:
+            # in the rare event that there are no valid coord losses in the batch
+            l1_loss = torch.tensor(0.).to(p.device)
+            l2_loss = torch.tensor(0.).to(p.device)
+        else:
+            p_sigmoid, t = p.sigmoid().float(), t.float()
+            # calculate L1 and L2 losses for tracking, but use average of MAE and MSE for optimization
+            l1_loss, l2_loss = F.l1_loss(p_sigmoid[~mask], t[~mask]), F.mse_loss(p_sigmoid[~mask], t[~mask])
+        return {"coord_loss_l1": l1_loss, "coord_loss_l2": l2_loss, "coord_loss": (l1_loss + l2_loss) / 2.}
+
+    def forward(self, p, t):
+        dist_loss_dict = self.dist_loss(p[:, :10], t[:, :10])
+        bce_loss_dict = self.bce(p[:, 10:20], t[:, 10:20])
+        coord_loss_dict = self.coord_loss(p[:, 20:], t[:, 20:])
+        loss_dict = {"loss": dist_loss_dict["dist_loss"] + bce_loss_dict["bce_loss"] + 100 * coord_loss_dict["coord_loss"]}
+        loss_dict.update(dist_loss_dict)
+        loss_dict.update(bce_loss_dict)
+        loss_dict.update(coord_loss_dict)
+        return loss_dict
+
+
+class SigmoidDiceBCELoss(nn.Module):
+
+    def __init__(self, seg_pos_weight=None):
+        super().__init__()
+        self.eps = 1e-5
+        self.seg_pos_weight = torch.tensor(seg_pos_weight) if not isinstance(seg_pos_weight, type(None)) else 1.0
+
+    def forward(self, p, t):
+        # p.shape = t.shape = (N, C, H, W)
+        assert p.shape == t.shape
+        p, t = p.float(), t.float()
+        intersection = torch.sum(p.sigmoid() * t)
+        denominator = torch.sum(p.sigmoid()) + torch.sum(t) 
+        dice = (2. * intersection + self.eps) / (denominator + self.eps)
+        dice_loss = 1 - dice
+        bce_loss = F.binary_cross_entropy_with_logits(p, t, pos_weight=torch.tensor(self.seg_pos_weight))
+        return {"seg_loss": 1.0 * dice_loss + 1.0 * bce_loss, "dice_loss": dice_loss, "bce_loss": bce_loss}
+
+
+class BCEL1LossDistCoordSeg(nn.Module):
+    # Only calculate coordinate loss for slices and adjacent slices with foramen
+    # Coordinate labels will be -1 for those without foramen
+    def __init__(self, loss_weights=None, seg_pos_weight=None):
+        super().__init__()
+        self.loss_weights = torch.tensor(loss_weights) if not isinstance(loss_weights, type(None)) else torch.tensor([1., 1., 1.])
+        self.seg_loss = SigmoidDiceBCELoss(seg_pos_weight=seg_pos_weight)
+    
+    def dist_loss(self, p, t):
+        assert p.shape[1] == t.shape[1] == 10
+        return {"dist_loss": F.binary_cross_entropy_with_logits(p, t)}
 
     @staticmethod
     def coord_loss(p, t):

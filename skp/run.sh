@@ -39,11 +39,23 @@ ts --gpus 2 python train.py cfg_head_ct_age_2d_5stack_top25 --sync_batchnorm --b
 
 
 
-ts --gpus 2 python train.py cfg_predict_sagittal_canal_coords --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg_predict_sagittal_canal_coords --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg_predict_sagittal_canal_coords --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg_predict_sagittal_canal_coords --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg_predict_sagittal_canal_coords --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg000_foramen_dist_coord_bce_upsample_hard --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg000_foramen_dist_coord_bce_upsample_hard --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg000_foramen_dist_coord_bce_upsample_hard --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg000_foramen_dist_coord_bce_upsample_hard --sync_batchnorm --benchmark --fold 4
+
+
+ts --gpus 2 python train.py cfg000_subarticular_dist_coord_proba_weighted_sampling --sync_batchnorm --benchmark --fold 0 --backbone resnet200d
+ts --gpus 2 python train.py cfg000_subarticular_dist_coord_proba_weighted_sampling --sync_batchnorm --benchmark --fold 1 --backbone resnet200d
+ts --gpus 2 python train.py cfg000_subarticular_dist_coord_proba_weighted_sampling --sync_batchnorm --benchmark --fold 2 --backbone resnet200d
+ts --gpus 2 python train.py cfg000_subarticular_dist_coord_proba_weighted_sampling --sync_batchnorm --benchmark --fold 3 --backbone resnet200d
+ts --gpus 2 python train.py cfg000_subarticular_dist_coord_proba_weighted_sampling --sync_batchnorm --benchmark --fold 4 --backbone resnet200d
+
+
+ts --gpus 2 python train.py cfg000_foramen_dist_coord_proba_no_upsample --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg000_foramen_dist_coord_proba_no_upsample --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg000_foramen_dist_coord_proba_no_upsample --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg000_foramen_dist_coord_proba_no_upsample --sync_batchnorm --benchmark --fold 4
 
 
 ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 0
@@ -68,8 +80,8 @@ python train.py cfg0_gen_det2_spinal_crops_embed_level --sync_batchnorm --benchm
 python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug --data_dir ../data/train_x3d_generated_spinal_crops/canal
 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
 python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_spinal_dist_coord_seg_v3_upsample_hard --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg000_genv3_subarticular_crops_without_augs --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg0_foramen_dist_coord_seg_v5_upsample_hard --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
+python train.py cfg000_subarticular_dist_coord_proba_weighted_sampling --sync_batchnorm --benchmark --fold 0 --neptune_mode debug --backbone tf_efficientnetv2_m
 
 
 python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 0
@@ -89,29 +101,87 @@ ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchn
 ts --gpus 2 python train.py cfg0_retinanet_mobilenetv3_foramen --sync_batchnorm --benchmark --fold 4
 ts --gpus 2 python train.py cfg0_retinanet_efficientnetv2s_foramen --sync_batchnorm --benchmark --fold 4
 
-ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 0 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 1 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 2 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 3 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_foramen_crops --sync_batchnorm --benchmark --fold 4 --num_epochs 5
+python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone convnextv2_tiny --backbone_img_size True
 
-ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 0 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 1 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 2 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 3 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_spinal_crops --sync_batchnorm --benchmark --fold 4 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_384 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone coatnet_1_rw_224 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone coatnet_3_rw_224 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_s
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_m
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_l
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnet_b0
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnet_b4
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnet_b6_ns
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tiny_vit_21m_512.dist_in22k_ft_in1k
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone dm_nfnet_f0.dm_in1k
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone dm_nfnet_f2.dm_in1k
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone dm_nfnet_f4.dm_in1k
 
-ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 0 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 1 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 2 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 3 --num_epochs 5
-ts --gpus 2 python train.py cfg000_genv3_subarticular_crops --sync_batchnorm --benchmark --fold 4 --num_epochs 5
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone maxvit_small_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone coatnet_0_rw_224 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone coatnet_1_rw_224 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_l
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tiny_vit_21m_512.dist_in22k_ft_in1k
+ts --gpus 2 python train.py cfg000_genv3_spinal_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone dm_nfnet_f0.dm_in1k
 
-ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_v4_upsample_hard --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg0_foramen_dist_coord_seg_upsample_hard_cases --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone maxvit_small_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone coatnet_0_rw_224 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone coatnet_1_rw_224 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_l
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tiny_vit_21m_512.dist_in22k_ft_in1k
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone dm_nfnet_f0.dm_in1k
+
+ts --gpus 2 python train.py cfg000_foramen_dist_coord_bce_upsample_hard --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg000_foramen_dist_only_upsample_hard --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg000_foramen_dist_only_upsample_hard --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg000_foramen_dist_only_upsample_hard --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg000_foramen_dist_only_upsample_hard --sync_batchnorm --benchmark --fold 4
+
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_m
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 1 --backbone tf_efficientnetv2_m
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 2 --backbone tf_efficientnetv2_m
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 3 --backbone tf_efficientnetv2_m
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 4 --backbone tf_efficientnetv2_m
+
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_l
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 1 --backbone tf_efficientnetv2_l
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 2 --backbone tf_efficientnetv2_l
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 3 --backbone tf_efficientnetv2_l
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 4 --backbone tf_efficientnetv2_l
+
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnet_b0
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 1 --backbone tf_efficientnet_b0
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 2 --backbone tf_efficientnet_b0
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 3 --backbone tf_efficientnet_b0
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 4 --backbone tf_efficientnet_b0
+
+
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bce --sync_batchnorm --benchmark --fold 0 --backbone tinynet_e.in1k
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bce --sync_batchnorm --benchmark --fold 1 --backbone tinynet_e.in1k
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bce --sync_batchnorm --benchmark --fold 2 --backbone tinynet_e.in1k
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bce --sync_batchnorm --benchmark --fold 3 --backbone tinynet_e.in1k
+ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bce --sync_batchnorm --benchmark --fold 4 --backbone tinynet_e.in1k
+
+ts --gpus 2 python train.py cfg000_dist_foramen_crops --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg000_dist_foramen_crops --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg000_dist_foramen_crops --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg000_dist_foramen_crops --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg000_dist_foramen_crops --sync_batchnorm --benchmark --fold 4
+
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_csn --sync_batchnorm --benchmark --fold 0
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_csn --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_csn --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_csn --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg000_genv3_subarticular_crops_csn --sync_batchnorm --benchmark --fold 4
+
+ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v4_imputed --sync_batchnorm --benchmark --fold 0 --num_epochs 20
+ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v4_imputed --sync_batchnorm --benchmark --fold 1 --num_epochs 20
+ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v4_imputed --sync_batchnorm --benchmark --fold 2 --num_epochs 20
+ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v4_imputed --sync_batchnorm --benchmark --fold 3 --num_epochs 20
+ts --gpus 2 python train.py cfg0_subarticular_dist_coord_seg_v4_imputed --sync_batchnorm --benchmark --fold 4 --num_epochs 20
 
 ts --gpus 2 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 0 --model net_r2plus1d 
 ts --gpus 2 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 1 --model net_r2plus1d 
