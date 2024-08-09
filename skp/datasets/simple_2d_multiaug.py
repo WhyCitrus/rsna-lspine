@@ -73,8 +73,9 @@ class Dataset(TorchDataset):
 
         x = x.transpose(2, 0, 1) # channels-last -> channels-first
         x = torch.tensor(x).float()
+        y = torch.tensor(y).float()
         if y.ndim == 0:
-            y = torch.tensor(y).float().unsqueeze(-1)
+            y = y.unsqueeze(-1)
 
         if self.cfg.convert_to_3d:
             x = x.unsqueeze(0)

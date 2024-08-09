@@ -34,11 +34,16 @@ class Task(pl.LightningModule):
         assert y.dtype == torch.float, f"y.dtype is {y.dtype}, not float"
         batch_size = y.size(0)
         lamb = np.random.beta(self.cfg.mixup, self.cfg.mixup, batch_size)
-        lamb = torch.from_numpy(lamb)
+        lamb = torch.from_numpy(lamb).to(x.device).float()
+        permuted_indices = torch.randperm(batch_size)
+        # also compute mixup of weights
+        weights = torch.ones(batch_size).to(x.device)
+        weights[y[:, 1] == 1] = 2
+        weights[y[:, 2] == 1] = 4
+        weights = lamb * weights + (1 - lamb) * weights[permuted_indices]
         if lamb.ndim < y.ndim:
             for _ in range(y.ndim - lamb.ndim):
                 lamb = lamb.unsqueeze(-1)
-        permuted_indices = torch.randperm(batch_size)
         ymix = lamb * y + (1 - lamb) * y[permuted_indices]
         if lamb.ndim < x.ndim:
             for _ in range(x.ndim - lamb.ndim):
@@ -47,6 +52,7 @@ class Task(pl.LightningModule):
         xmix = lamb * x + (1 - lamb) * x[permuted_indices]
         batch["x"] = xmix
         batch["y"] = ymix
+        batch["wts"] = weights
         return batch
 
     def training_step(self, batch, batch_idx):             

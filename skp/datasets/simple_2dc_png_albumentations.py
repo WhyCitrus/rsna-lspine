@@ -28,8 +28,8 @@ class Dataset(TorchDataset):
 
         self.inputs = df[self.cfg.inputs].tolist()
         self.labels = df[self.cfg.targets].values 
-
         self.collate_fn = train_collate_fn if mode == "train" else val_collate_fn
+        assert self.cfg.cv2_load_flag == cv2.IMREAD_GRAYSCALE, "2Dc dataset assumes using grayscale images"
 
     def __len__(self):
         return len(self.inputs) 
@@ -39,15 +39,13 @@ class Dataset(TorchDataset):
         # where each directory contains all the images in a stack as PNG 
         # and that filenames are sortable
         images = np.sort(glob.glob(os.path.join(self.cfg.data_dir, self.inputs[i], "*.png")))
-        if self.cfg.image_z != len(images):
+        if self.cfg.image_z < len(images):
             indices = np.arange(len(images))
             indices = zoom(indices, self.cfg.image_z / len(images), order=0, prefilter=False).astype("int")
             assert len(indices) == self.cfg.image_z
             images = images[indices]
         x = np.stack([cv2.imread(im, self.cfg.cv2_load_flag) for im in images], axis=0)
-        if x.ndim == 3 and not self.cfg.convert_to_2dc:
-            x = np.expand_dims(x, axis=-1)
-        # x.shape = (Z, H, W, C)
+        # x.shape = (Z, H, W)
         return x
 
     def get(self, i):
@@ -66,9 +64,10 @@ class Dataset(TorchDataset):
             data = self.get(i)
 
         x, y = data
+        # x.shape = (Z, H, W)
 
-        # if self.cfg.reverse_dim0 and self.mode == "train" and bool(np.random.binomial(1, 0.5)):
-        #     x = np.ascontiguousarray(x[::-1])
+        if self.cfg.reverse_dim0 and self.mode == "train" and bool(np.random.binomial(1, 0.5)):
+            x = np.ascontiguousarray(x[::-1])
 
         to_transform = {"image": x[0]}
         for idx in range(1, x.shape[0]):
@@ -78,7 +77,9 @@ class Dataset(TorchDataset):
         x = np.stack([xt["image"]] + [xt[f"image{idx}"] for idx in range(1, x.shape[0])])
         x = torch.from_numpy(x)
         x = x.float()
-        x = x.permute(3, 0, 1, 2)
+
+        if self.cfg.convert_to_3d:
+            x = x.unsqueeze(0) # add channel dimension if wanting to use this with 3D model 
 
         if y.ndim == 0:
             y = torch.tensor(y).float().unsqueeze(-1)

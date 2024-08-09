@@ -12,6 +12,18 @@ class BCEWithLogitsLoss(nn.BCEWithLogitsLoss):
         return F.binary_cross_entropy_with_logits(p.float(), t.float())
 
 
+class ClassWeightedBCE(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+        self.weights = torch.tensor([1, 2, 4]).float()
+
+    def forward(self, p, t):
+        assert p.shape[1] == t.shape[1] == 3
+        loss = F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none") * self.weights.to(p.device)
+        return loss.mean()
+
+
 class SampleWeightedLogLoss(nn.BCEWithLogitsLoss):
 
     def forward(self, p, t, w):
@@ -28,15 +40,42 @@ class SampleWeightedLogLossV2(nn.BCEWithLogitsLoss):
         return loss
 
 
+class SampleWeightedLogLossMixup(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t, w=None):
+        if not isinstance(w, torch.Tensor):
+            w = torch.ones((len(p), 1))
+            w[t[:, 1] == 1] = 2
+            w[t[:, 2] == 1] = 4
+        if w.ndim == 1:
+            w = w.unsqueeze(1)
+        loss = (F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none") * w.float().to(p.device)).mean()
+        return loss
+
+
 class SampleWeightedCrossEntropy(nn.CrossEntropyLoss):
 
     def forward(self, p, t):
-        w = torch.ones((len(p), ))
+        w = torch.ones(len(p))
         w[t[:, 1] == 1] = 2
         w[t[:, 2] == 1] = 4
         t = torch.argmax(t, dim=1)
         loss = (F.cross_entropy(p.float(), t.long(), reduction="none") * w.float().to(p.device)).mean()
         return loss
+
+
+class SampleWeightedCrossEntropyMixup(nn.Module):
+
+    def forward(self, p, t, w=None):
+        if not isinstance(w, torch.Tensor):
+            w = torch.ones(len(p))
+            w[t[:, 1] == 1] = 2
+            w[t[:, 2] == 1] = 4
+        # assumes one-hot encoded labels
+        p = F.log_softmax(p.float(), -1)
+        w = w.float().to(p.device)
+        loss = -(p * t).sum(-1)
+        return (loss * w).sum() / w.sum()
 
 
 class SampleWeightedCrossEntropyBilat(nn.BCEWithLogitsLoss):
@@ -89,6 +128,18 @@ class WeightedLogLossWithLogits(nn.Module):
         w[t[:, 1] == 1] = 2
         w[t[:, 2] == 1] = 4
         return self.torch_log_loss_with_logits(p.float(), t.float(), w=w)
+
+
+class SampleWeightedWholeSpinalBCE(nn.Module):
+
+    def forward(self, p, t):
+        p = torch.cat([p[:, i:i+3] for i in range(0, 15, 3)], dim=0)
+        t = torch.cat([t[:, i:i+3] for i in range(0, 15, 3)], dim=0)
+        w = torch.ones((len(p), 1)).to(p.device)
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        loss = (F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none") * w.float().to(p.device)).mean()
+        return loss
 
 
 class WeightedLogLossWholeSpinalSeriesPlusCoords(WeightedLogLossWithLogits):
@@ -273,6 +324,32 @@ class MaskedSmoothL1LossSubarticular(nn.Module):
             "l1_loss": F.l1_loss(p[~mask], t[~mask]),
             "l2_loss": F.mse_loss(p[~mask], t[~mask])
         }
+        return loss_dict
+
+
+class MaskedSmoothL1LossBCESubarticular(nn.Module):
+
+    def dist_loss(self, p, t, mask):
+        mask = mask.clone().unsqueeze(2).repeat(1, 1, t.shape[2])
+        assert mask.shape == t.shape, f"mask.shape = {mask.shape}, t.shape = {t.shape}"
+        mask[t == -88888] = True
+        loss_dict = {
+            "dist_loss": F.smooth_l1_loss(p[~mask], t[~mask]),
+            "dist_loss_l1": F.l1_loss(p[~mask], t[~mask]),
+            "dist_loss_l2": F.mse_loss(p[~mask], t[~mask])
+        }
+        return loss_dict
+
+    def bce_loss(self, p, t, mask):
+        mask = mask.clone().unsqueeze(2).repeat(1, 1, t.shape[2])
+        assert mask.shape == t.shape, f"mask.shape = {mask.shape}, t.shape = {t.shape}"
+        return {"bce_loss": F.binary_cross_entropy_with_logits(p[~mask].float(), t[~mask].float())}
+
+    def forward(self, p, t, mask):
+        loss_dict = {}
+        loss_dict.update(self.dist_loss(p[:, :, :10], t[:, :, :10], mask))
+        loss_dict.update(self.bce_loss(p[:, :, 10:], t[:, :, 10:], mask))
+        loss_dict.update({"loss": loss_dict["dist_loss"]})# + loss_dict["bce_loss"]})
         return loss_dict
 
 

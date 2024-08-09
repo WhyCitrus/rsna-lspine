@@ -450,9 +450,9 @@ class CompetitionMetricPlusAUROCWholeSpinal(_BaseMetric):
     def compute(self):
         p = torch.cat(self.p, dim=0)[:, :15]
         t = torch.cat(self.t, dim=0)[:, :15]
-        p = torch.cat([p[:, :3], p[:, 3:6], p[:, 6:9], p[:, 9:12], p[:, 12:15]], dim=0)
-        t = torch.cat([t[:, :3], t[:, 3:6], t[:, 6:9], t[:, 9:12], t[:, 12:15]], dim=0)
-        p = F.softmax(p, dim=1).cpu().numpy()
+        p = torch.cat([p[:, i:i+3] for i in range(0, 15, 3)], dim=0)
+        t = torch.cat([t[:, i:i+3] for i in range(0, 15, 3)], dim=0)
+        p = p.sigmoid().cpu().numpy()
         t = t.cpu().numpy()
         wts = np.ones((len(p), ))
         wts[t[:, 1] == 1] = 2

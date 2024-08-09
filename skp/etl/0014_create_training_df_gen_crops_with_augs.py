@@ -6,7 +6,7 @@ import pandas as pd
 train_df = pd.read_csv("../../data/train_narrow.csv")
 folds_df = pd.read_csv("../../data/folds_cv5.csv")
 
-foramen_crops = glob.glob("../../data/train_generated_crops_with_augs_dist_coord_seg/foramina/*.png")
+foramen_crops = glob.glob("../../data/train_generated_crops_with_augs_dist_coord_proba/foramina/*.png")
 foramen_df = pd.DataFrame({"filepath": foramen_crops})
 foramen_df["filepath"] = foramen_df.filepath.apply(lambda x: os.path.basename(x))
 foramen_df["study_id"] = foramen_df.filepath.apply(lambda x: x.split("_")[0]).astype("int")
@@ -33,7 +33,7 @@ foramen_df.loc[foramen_df.filepath.apply(lambda x: x.endswith("000.png"))].to_cs
 # concat_foramen_df.to_csv("../../data/train_gen_concat_foramen_crops_with_augs.csv", index=False)
 
 
-spinal_crops = glob.glob("../../data/train_generated_crops_with_augs_dist_coord_seg/spinal/*.png")
+spinal_crops = glob.glob("../../data/train_generated_crops_with_augs_dist_coord_proba/spinal/*.png")
 spinal_df = pd.DataFrame({"filepath": spinal_crops})
 spinal_df["filepath"] = spinal_df.filepath.apply(lambda x: os.path.basename(x))
 spinal_df["study_id"] = spinal_df.filepath.apply(lambda x: x.split("_")[0]).astype("int")
@@ -47,7 +47,7 @@ spinal_df.to_csv("../../data/train_gen_spinal_crops_with_augs.csv", index=False)
 spinal_df.loc[spinal_df.filepath.apply(lambda x: x.endswith("000.png"))].to_csv("../../data/train_gen_spinal_crops_without_augs.csv", index=False)
 
 
-subarticular_crops = glob.glob("../../data/train_generated_crops_with_augs_dist_coord_seg/subarticular/*.png")
+subarticular_crops = glob.glob("../../data/train_generated_crops_with_augs_dist_coord_proba/subarticular/*.png")
 subarticular_df = pd.DataFrame({"filepath": subarticular_crops})
 subarticular_df["filepath"] = subarticular_df.filepath.apply(lambda x: os.path.basename(x))
 subarticular_df["study_id"] = subarticular_df.filepath.apply(lambda x: x.split("_")[0]).astype("int")
