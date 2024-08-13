@@ -21,7 +21,8 @@ class Dataset(TorchDataset):
             df = df[df.fold != self.cfg.fold]
             self.transforms = self.cfg.train_transforms
         elif self.mode == "val":
-            df = df[df.fold == self.cfg.fold]
+            # if fold is -1, we are training fullfit, so just sample 10% of dataset
+            df = df.sample(n=int(0.1*len(df))) if self.cfg.fold == -1 else df[df.fold == self.cfg.fold]
             self.transforms = self.cfg.val_transforms
 
         self.inputs = df.features.tolist()

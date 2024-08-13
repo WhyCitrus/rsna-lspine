@@ -15,7 +15,7 @@ cfg.task = "classification_multiaug"
 cfg.model = "net_2d"
 cfg.backbone = "tf_efficientnetv2_s"
 cfg.pretrained = True
-cfg.num_input_channels = 3
+cfg.num_input_channels = 5
 cfg.pool = "gem"
 cfg.pool_params = dict(p=3)
 cfg.dropout = 0.5
@@ -25,12 +25,12 @@ cfg.normalization = "-1_1"
 cfg.normalization_params = {"min": 0, "max": 255}
 
 cfg.fold = 0 
-cfg.dataset = "simple_2d_multiaug"
-cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_generated_crops_with_augs_dist_coord_proba/spinal_effnet/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_gen_spinal_crops_with_augs.csv"
+cfg.dataset = "simple_2dc_multiaug"
+cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_generated_crops_with_augs_dist_coord_proba_5ch/subarticular/"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_gen_subarticular_crops_with_augs_5ch.csv"
 cfg.inputs = "filepath"
 cfg.targets = ["normal_mild", "moderate", "severe"]
-cfg.cv2_load_flag = cv2.IMREAD_COLOR
+cfg.cv2_load_flag = cv2.IMREAD_GRAYSCALE
 cfg.num_workers = 14
 cfg.pin_memory = True
 cfg.channel_reverse = True
@@ -43,7 +43,7 @@ cfg.loss = "SampleWeightedLogLossV2"
 cfg.loss_params = {}
 
 cfg.batch_size = 32
-cfg.num_epochs = 5
+cfg.num_epochs = 10
 cfg.optimizer = "AdamW"
 cfg.optimizer_params = {"lr": 3e-4}
 
@@ -80,6 +80,7 @@ cfg.train_transforms = A.Compose([
         #                 min_holes=2, max_holes=8, fill_value=0, p=1),
 
     ], n=3, p=0.95, replace=False)
-])
+], additional_targets={f"image{idx}": "image" for idx in range(1, cfg.num_input_channels)})
 
-cfg.val_transforms = A.Compose([A.Resize(cfg.image_height, cfg.image_width, p=1)])
+cfg.val_transforms = A.Compose([A.Resize(cfg.image_height, cfg.image_width, p=1)], 
+    additional_targets={f"image{idx}": "image" for idx in range(1, cfg.num_input_channels)})

@@ -60,3 +60,19 @@ subarticular_df = subarticular_df.merge(folds_df, on="study_id")
 subarticular_df = subarticular_df.merge(train_df.loc[train_df.condition == "subarticular"], on=["study_id", "level", "laterality"])
 subarticular_df.to_csv("../../data/train_gen_subarticular_crops_with_augs.csv", index=False)
 subarticular_df.loc[subarticular_df.filepath.apply(lambda x: x.endswith("000.png"))].to_csv("../../data/train_gen_subarticular_crops_without_augs.csv", index=False)
+
+# 5ch
+subarticular_crops = glob.glob("../../data/train_generated_crops_with_augs_dist_coord_proba_5ch/subarticular/*")
+subarticular_df = pd.DataFrame({"filepath": subarticular_crops})
+subarticular_df["filepath"] = subarticular_df.filepath.apply(lambda x: os.path.basename(x))
+subarticular_df["study_id"] = subarticular_df.filepath.apply(lambda x: x.split("_")[0]).astype("int")
+subarticular_df["series_id"] = subarticular_df.filepath.apply(lambda x: x.split("_")[1]).astype("int")
+subarticular_df["laterality"] = subarticular_df.filepath.apply(lambda x: x.split("_")[2][:1])
+subarticular_df["level"] = subarticular_df.filepath.apply(lambda x: "_".join(x.split("_")[3:5]))
+subarticular_df["unique_identifier"] = subarticular_df.study_id.astype("str") + "_" + subarticular_df.laterality + "_" + subarticular_df.level
+subarticular_df["unique_id"] = pd.Categorical(subarticular_df.unique_identifier).codes
+subarticular_df = subarticular_df.merge(folds_df, on="study_id")
+subarticular_df = subarticular_df.merge(train_df.loc[train_df.condition == "subarticular"], on=["study_id", "level", "laterality"])
+subarticular_df.to_csv("../../data/train_gen_subarticular_crops_with_augs_5ch.csv", index=False)
+subarticular_df.loc[subarticular_df.filepath.apply(lambda x: x.endswith("000.png"))].to_csv("../../data/train_gen_subarticular_crops_without_augs_5ch.csv", index=False)
+
