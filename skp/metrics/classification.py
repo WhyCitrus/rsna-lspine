@@ -281,17 +281,21 @@ class CompetitionMetricTorchAndNumpy(_BaseMetric):
         return {"comp_loss": torch_loss, "numpy_loss": numpy_loss}
 
 
-class CompetitionMetricBilat(_BaseMetric):
+class CompetitionMetricPlusAUROCBilateralSoftmax(_BaseMetric):
 
     def compute(self):
-        p = torch.cat(self.p, dim=0).cpu().sigmoid()
+        p = torch.cat(self.p, dim=0).cpu()
         t = torch.cat(self.t, dim=0).cpu()
-        p = torch.cat([p[:, :3], p[:, 3:]], dim=0).numpy()
+        p = F.softmax(torch.cat([p[:, :3], p[:, 3:]], dim=0), dim=1).numpy()
         t = torch.cat([t[:, :3], t[:, 3:]], dim=0).numpy()
         wts = np.ones((len(p), ))
         wts[t[:, 1] == 1] = 2
         wts[t[:, 2] == 1] = 4
-        return {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
+        metrics_dict = {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
+        for i in range(p.shape[1]):
+            metrics_dict[f"auc{i}"] = _roc_auc_score(t=t[:, i], p=p[:, i])
+        metrics_dict["auc_mean"] = np.mean([v for k, v in metrics_dict.items() if "auc" in k])
+        return metrics_dict
 
 
 class CompetitionMetricPlusAUROCMultiAug(tm.Metric):

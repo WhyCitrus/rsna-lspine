@@ -13,7 +13,7 @@ cfg.project = "gradientecho/rsna-lspine"
 cfg.task = "classification"
 
 cfg.model = "net_2d"
-cfg.backbone = "tf_efficientnetv2_m"
+cfg.backbone = "maxvit_tiny_tf_512"
 cfg.pretrained = True
 cfg.num_input_channels = 5
 cfg.pool = "gem"
@@ -41,6 +41,8 @@ cfg.pin_memory = True
 # cfg.sampler = "IterationBasedSampler"
 # cfg.num_iterations_per_epoch = 1000
 cfg.reverse_dim0 = True
+cfg.backbone_img_size = True
+cfg.convert_to_3d = False
 
 cfg.loss = "SampleWeightedWholeSpinalBCE"
 cfg.loss_params = {}
@@ -59,7 +61,7 @@ cfg.metrics = ["CompetitionMetricPlusAUROCWholeSpinal"]
 cfg.val_metric = "comp_loss"
 cfg.val_track = "min"
 
-cfg.image_height = 512
+cfg.image_height = 352
 cfg.image_width = 128
 cfg.image_z = 5
 

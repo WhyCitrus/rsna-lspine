@@ -1,0 +1,185 @@
+FORAMEN
+=======
+coatnet      : 0.4904
+maxvit       : 0.4842
+tinyvit      : 0.4922
+effnetv2_m   : 0.4925
+resnet200d   : 0.4947
+csn_r101     : 0.4865
+
+ensemble1    : 0.4801
+ensemble2    : 0.4793 [coatnet, maxvit, csn_r101]
+
+SPINAL (median)
+======
+coatnet      : 0.2879
+maxvit       : 0.2903
+tinyvit      : 0.2878
+effnetv2_m   : 0.2929
+resnet200d   : 0.2964
+nfnet        : 0.2860
+csn_r101     : 0.2905
+
+ensemble1    : 0.2761
+ensemble2    : 0.2771 [coatnet, tinyvit, nfnet]
+
+coatnet      : 0.2927
+maxvit       : 0.2896
+tinyvit      : 0.2814
+effnetv2_m   : 0.2867
+resnet200d   : 0.2831
+nfnet        : 0.2907
+csn_r101     : 0.2846
+
+ensemble1    : 0.2740
+ensemble2    : 0.2784 [coatnet, tinyvit, nfnet]
+
+SPINAL (mean)
+======
+coatnet      : 0.2874
+maxvit       : 0.2877
+tinyvit      : 0.2884
+effnetv2_m   : 0.2881
+resnet200d   : 0.2908
+nfnet        : 0.2818
+csn_r101     : 0.2897
+
+ensemble1    : 0.2778
+ensemble2    : 0.2783 [coatnet, tinyvit, nfnet, maxvit]
+
+coatnet      : 0.2904
+maxvit       : 0.2852
+tinyvit      : 0.2830
+effnetv2_m   : 0.2859
+resnet200d   : 0.2793
+nfnet        : 0.2844
+csn_r101     : 0.2821
+
+ensemble1    : 0.2752
+ensemble2    : 0.2778 [coatnet, tinyvit, nfnet, maxvit]
+
+SUBARTICULAR
+============
+coatnet      : 0.5731
+maxvit       : 0.5663
+tinyvit      : 0.5754
+effnetv2_m   : 0.5713
+resnet200d   : 0.5716
+nfnet        : 0.5680
+csn_r101     : 0.5650
+
+ensemble1    : 0.5642
+ensemble2    : 0.5617 [maxvit, nfnet, csn_r101]
+
+(0.4793 + 0.2761 + 0.2740 + 0.5617) / 4 = 0.3978 
+LB 0.38
+
+
+---
+
+Train models on crops using ground truth coordinates
+Infer using localization models
+
+FORAMEN
+=======
+coatnet      : 0.4896
+maxvit       : 0.4872
+tinyvit      : 0.4898
+csn_r101     : 0.4877
+
+ensemble1    : 0.4783
+ensemble2    : 0.4786
+
+
+SPINAL (median)
+======
+coatnet      : 0.2865
+maxvit       : 0.2891
+tinyvit      : 0.2849
+nfnet        : 0.2836
+csn_r101     : 0.2877
+
+ensemble1    : 0.2745
+ensemble2    : 0.2757
+
+coatnet      : 0.2812
+maxvit       : 0.2810
+tinyvit      : 0.2760
+nfnet        : 0.2870
+csn_r101     : 0.2848
+
+ensemble1    : 0.2704
+ensemble2    : 0.2714
+
+SPINAL (mean)
+======
+coatnet      : 0.2842
+maxvit       : 0.2828
+tinyvit      : 0.2845
+nfnet        : 0.2765
+csn_r101     : 0.2853
+
+ensemble1    : 0.2746
+ensemble2    : 0.2754
+
+coatnet      : 0.2800
+maxvit       : 0.2780
+tinyvit      : 0.2776
+nfnet        : 0.2802
+csn_r101     : 0.2806
+
+ensemble1    : 0.2714
+ensemble2    : 0.2731
+
+SUBARTICULAR
+============
+coatnet      : 0.5693
+maxvit       : 0.5641
+tinyvit      : 0.5701
+nfnet        : 0.5658
+csn_r101     : 0.5629
+
+ensemble1    : 0.5603
+ensemble2    : 0.5597
+
+(0.4783 + 0.2745 + 0.2704 + 0.5603) / 4 = 0.3959
+LB 0.37
+
+---
+
+Using model to rank crops is actually WORSE:
+
+FORAMEN
+=======
+coatnet      : 0.4987
+maxvit       : 0.4928
+tinyvit      : 0.4973
+csn_r101     : 0.4941
+
+ensemble1    : 0.4819
+ensemble2    : 0.4824
+
+---
+
+Increasing slice stagger to 2 did not help foramen
+
+coatnet      : 0.4941
+maxvit       : 0.4920
+tinyvit      : 0.4953
+csn_r101     : 0.4905
+
+ensemble1    : 0.4838
+ensemble2    : 0.4838
+
+--
+
+Decreasing slice stagger to 1 for subarticular helped only marginally
+
+coatnet      : 0.5682
+maxvit       : 0.5630
+tinyvit      : 0.5695
+nfnet        : 0.5642
+csn_r101     : 0.5631
+
+ensemble1    : 0.5579
+ensemble2    : 0.5574

@@ -64,6 +64,19 @@ class SampleWeightedCrossEntropy(nn.CrossEntropyLoss):
         return loss
 
 
+class SampleWeightedCrossEntropyBilateral(nn.CrossEntropyLoss):
+
+    def forward(self, p, t):
+        p = torch.cat([p[:, :3], p[:, 3:]])
+        t = torch.cat([t[:, :3], t[:, 3:]])
+        w = torch.ones(len(p))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        t = torch.argmax(t, dim=1)
+        loss = (F.cross_entropy(p.float(), t.long(), reduction="none") * w.float().to(p.device)).mean()
+        return loss
+
+
 class SampleWeightedCrossEntropyMixup(nn.Module):
 
     def forward(self, p, t, w=None):

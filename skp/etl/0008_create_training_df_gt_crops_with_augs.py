@@ -17,6 +17,11 @@ def create_training_df(image_dir, condition):
 	else:
 		del df["laterality"]
 	df = df.merge(train_df.loc[train_df.condition == condition], on=merge_cols)
+	if "spinal" not in image_dir:
+		df["unique_identifier"] = df.study_id.astype("str") + "_" + df.laterality + "_" + df.level
+	else:
+		df["unique_identifier"] = df.study_id.astype("str") + "_" + df.level
+	df["unique_id"] = pd.Categorical(df.unique_identifier).codes
 	return df
 
 
@@ -28,5 +33,5 @@ gt_foraminal = create_training_df("../../data/train_crops_gt_with_augs/foraminal
 gt_subarticular = create_training_df("../../data/train_crops_gt_with_augs/subarticular/", "subarticular")
 
 gt_spinal.to_csv("../../data/train_gt_spinal_with_augs_kfold.csv", index=False)
-gt_foraminal.to_csv("../../data/train_gt_formainal_with_augs_kfold.csv", index=False)
+gt_foraminal.to_csv("../../data/train_gt_foraminal_with_augs_kfold.csv", index=False)
 gt_subarticular.to_csv("../../data/train_gt_subarticular_with_augs_kfold.csv", index=False)
