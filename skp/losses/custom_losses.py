@@ -40,6 +40,45 @@ class SampleWeightedLogLossV2(nn.BCEWithLogitsLoss):
         return loss
 
 
+class SampleWeightedLogLossAll(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        w[t[:, 4] == 1] = 4 # spinal 2x
+        w[t[:, 5] == 1] = 8 # spinal 2x
+        w[t[:, 7] == 1] = 2
+        w[t[:, 8] == 1] = 4
+        loss = (F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none") * w.float().to(p.device)).mean()
+        return loss
+
+
+class SampleWeightedLogLossPseudo(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        t, t_pseudo = t[:, :3], t[:, 3:]
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        loss1 = (F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none") * w.float().to(p.device)).mean()
+        loss2 = (F.binary_cross_entropy_with_logits(p.float(), t_pseudo.float(), reduction="none") * w.float().to(p.device)).mean()
+        return 0.5 * loss1 + 0.5 * loss2
+
+
+class SampleWeightedLogLossSpinalSubarticular(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        # first 3 are right subarticular, next 3 left subarticular, last 3 spinal
+        p = torch.cat([p[:, :3], p[:, 3:6], p[:, 6:], p[:, 6:]]) # repeat spinal to weight it 2x
+        t = torch.cat([t[:, :3], t[:, 3:6], t[:, 6:], t[:, 6:]])
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        loss = (F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none") * w.float().to(p.device)).mean()
+        return loss
+
+
 class SampleWeightedLogLossMixup(nn.BCEWithLogitsLoss):
 
     def forward(self, p, t, w=None):

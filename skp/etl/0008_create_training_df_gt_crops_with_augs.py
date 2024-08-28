@@ -29,9 +29,13 @@ folds_df = pd.read_csv("../../data/folds_cv5.csv")
 train_df = pd.read_csv("../../data/train_narrow.csv")
 
 gt_spinal = create_training_df("../../data/train_crops_gt_with_augs/spinal/", "spinal")
+gt_axial_spinal = create_training_df("../../data/train_axial_spinal_crops_gt_with_augs/", "spinal")
 gt_foraminal = create_training_df("../../data/train_crops_gt_with_augs/foraminal/", "foraminal")
 gt_subarticular = create_training_df("../../data/train_crops_gt_with_augs/subarticular/", "subarticular")
+gt_sag_subarticular = create_training_df("../../data/train_sag_t2_subarticular_crops_gt_with_augs_v2/", "subarticular")
 
 gt_spinal.to_csv("../../data/train_gt_spinal_with_augs_kfold.csv", index=False)
+gt_axial_spinal.to_csv("../../data/train_gt_axial_spinal_with_augs_kfold.csv", index=False)
 gt_foraminal.to_csv("../../data/train_gt_foraminal_with_augs_kfold.csv", index=False)
 gt_subarticular.to_csv("../../data/train_gt_subarticular_with_augs_kfold.csv", index=False)
+gt_sag_subarticular.to_csv("../../data/train_gt_sag_subarticular_with_augs_kfold_v2.csv", index=False)

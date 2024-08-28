@@ -74,7 +74,7 @@ for study_id, study_df in one_series_coords.groupby("study_id"):
 # In summary,
 # 1,640/1,975 studies have only 1 axial T2 series
 # Of these, 152 are missing levels
-# Most of which are L1/L2 and L2/L2
+# Most of which are L1/L2 and L2/L3
 
 ##########################
 # STUDIES WITH >1 SERIES #

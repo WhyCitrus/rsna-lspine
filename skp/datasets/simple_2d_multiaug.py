@@ -31,7 +31,9 @@ class Dataset(TorchDataset):
         self.inputs = df[self.cfg.inputs].tolist()
         self.labels = df[self.cfg.targets].values 
         self.unique_ids = df.unique_id.values
-
+        if "sampling_weight" in df.columns:
+            self.sampling_weights = df.sampling_weight.values
+            
         self.collate_fn = train_collate_fn if mode == "train" else val_collate_fn
 
     def __len__(self):

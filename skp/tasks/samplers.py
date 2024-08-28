@@ -115,16 +115,20 @@ class WeightedSampler(Sampler):
     def __init__(self, dataset, cfg):
         super().__init__()
         self.len_dataset = len(dataset)
+        if isinstance(cfg.num_iterations_per_epoch, int):
+            self.total_iterations = cfg.num_iterations_per_epoch * cfg.batch_size * cfg.world_size
+        else:
+            self.total_iterations = self.len_dataset
         self.sampling_probas = dataset.sampling_weights / np.sum(dataset.sampling_weights)
         assert self.sampling_probas.min() > 0
         assert np.abs(1 - self.sampling_probas.sum() < 1e-6)
         self.indices = np.arange(self.len_dataset)
 
     def __len__(self):
-        return self.len_dataset
+        return self.total_iterations
 
     def __iter__(self):
-        sampled_indices = np.random.choice(self.indices, self.len_dataset, replace=True, p=self.sampling_probas)
+        sampled_indices = np.random.choice(self.indices, self.total_iterations, replace=True, p=self.sampling_probas)
         return iter(sampled_indices)
 
 

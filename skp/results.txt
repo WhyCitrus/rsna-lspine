@@ -171,7 +171,7 @@ csn_r101     : 0.4905
 ensemble1    : 0.4838
 ensemble2    : 0.4838
 
---
+---
 
 Decreasing slice stagger to 1 for subarticular helped only marginally
 
@@ -183,3 +183,81 @@ csn_r101     : 0.5631
 
 ensemble1    : 0.5579
 ensemble2    : 0.5574
+
+---
+Axial T2s for spinal (only calculate for levels for which axial exists)
+
+SPINAL
+======
+
+coatnet      : 0.2991
+maxvit       : 0.2986
+tinyvit      : 0.3019
+nfnet        : 0.3059
+csn_r101     : 0.2962
+
+ensemble1    : 0.2891
+ensemble2    : 0.2897
+
+coatnet      : 0.2804
+maxvit       : 0.2804
+tinyvit      : 0.2844
+nfnet        : 0.2752
+csn_r101     : 0.2781
+
+ensemble1    : 0.2718
+ensemble2    : 0.2711
+
+Average with sagittal (if no axial level, just use sagittal)
+
+ensemble[sag+ax] : 0.2529
+ensemble[sag+ax],any : 0.2607
+
+---
+
+Average target-specific crop models with target-agnostic crop models
+
+FORAMEN
+=======
+coatnet      : 0.4896
+maxvit       : 0.4872
+tinyvit      : 0.4898
+csn_r101     : 0.4877
+coatnet_all  : 0.4920
+maxvit_all   : 0.4870
+nfnet_all    : 0.4915
+tinyvit_all  : 0.4922
+csn_r101_all : 0.4827
+
+ensemble1    : 0.4765
+ensemble2    : 0.4750 ["csn_r101_all", "maxvit_all", "maxvit", "csn_r101"]
+
+SPINAL
+======
+coatnet      : 0.2865
+maxvit       : 0.2891
+tinyvit      : 0.2849
+nfnet        : 0.2836
+csn_r101     : 0.2877
+coatnet_all  : 0.2931
+maxvit_all   : 0.3002
+nfnet_all    : 0.2916
+tinyvit_all  : 0.2988
+csn_r101_all : 0.2988
+
+ensemble1    : 0.2743
+ensemble2    : 0.2737 ["coatnet", "tinyvit", "nfnet", "coatnet_all", "nfnet_all"]
+
+coatnet      : 0.2812
+maxvit       : 0.2810
+tinyvit      : 0.2760
+nfnet        : 0.2870
+csn_r101     : 0.2848
+coatnet_all  : 0.2734
+maxvit_all   : 0.2766
+nfnet_all    : 0.2644
+tinyvit_all  : 0.2702
+csn_r101_all : 0.2712
+
+ensemble1    : 0.2634
+ensemble2    : 0.2650 ["coatnet", "tinyvit", "nfnet", "coatnet_all", "nfnet_all"]

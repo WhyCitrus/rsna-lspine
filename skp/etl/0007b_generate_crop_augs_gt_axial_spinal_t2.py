@@ -22,6 +22,13 @@ def crop_square_around_center(img, xc, yc, size_factor=0.15):
 
 
 coords_df = pd.read_csv("../../data/train_label_coordinates.csv")
+coords_df = coords_df.loc[coords_df.condition.apply(lambda x: "Subarticular" in x)]
+lt = coords_df.loc[coords_df.condition.apply(lambda x: "Left" in x)]
+rt = coords_df.loc[coords_df.condition.apply(lambda x: "Right" in x)]
+coords_df = lt.merge(rt, on=["study_id", "series_id", "level"], suffixes=["_lt", "_rt"])
+coords_df["x"] = (coords_df.x_rt + coords_df.x_lt) / 2
+coords_df["y"] = (coords_df.y_rt + coords_df.y_lt) / 2
+coords_df["instance_number"] = (coords_df.instance_number_rt + coords_df.instance_number_lt) // 2
 
 description_df = pd.read_csv("../../data/train_series_descriptions.csv")
 series_to_description = {row.series_id: row.series_description for row in description_df.itertuples()}
@@ -34,16 +41,14 @@ for series_id, series_df in meta_df.groupby("series_id"):
 	series_df["position_index"] = np.arange(len(series_df))
 	instance_to_position_index_dict.update({f"{series_id}_{row.instance_number}": row.position_index for row in series_df.itertuples()})
 
-# We are going also going to include instance numbers offset by +/- 1
+# We are going also going to include instance numbers offset by +/- 2
 coords_df1 = coords_df.copy()
 coords_df1["instance_number"] -= 1
 coords_df2 = coords_df.copy()
 coords_df2["instance_number"] += 1
-
-# For subarticular, also offset by 2
-coords_df3 = coords_df.loc[coords_df.condition.apply(lambda x: "Subarticular" in x)].copy()
+coords_df3 = coords_df.copy()
 coords_df3["instance_number"] -= 2
-coords_df4 = coords_df.loc[coords_df.condition.apply(lambda x: "Subarticular" in x)].copy()
+coords_df4 = coords_df.copy()
 coords_df4["instance_number"] += 2
 
 coords_df = pd.concat([coords_df, coords_df1, coords_df2, coords_df3, coords_df4])
@@ -51,7 +56,7 @@ coords_df["series_instance"] = coords_df.series_id.astype("str") + "_" + coords_
 coords_df["position_index"] = coords_df.series_instance.map(instance_to_position_index_dict)
 
 image_dir = "../../data/train_pngs_3ch/"
-save_dir = "../../data/train_crops_gt_with_augs/"
+save_dir = "../../data/train_axial_spinal_crops_gt_with_augs/"
 
 failed = []
 pngfile_does_not_exist = []
@@ -67,14 +72,12 @@ for row in tqdm(coords_df.itertuples(), total=len(coords_df)):
 	offset_x, offset_y = int(0.0175 * img.shape[1]), int(0.0175 * img.shape[0])
 	xs = [row.x, row.x - offset_x, row.x + offset_x]
 	ys = [row.y, row.y - offset_y, row.y + offset_y]
-	condition = get_condition(row.condition)
 	crops = []
 	for xi in xs:
 		for yi in ys:
-			crops.append(crop_square_around_center(img, xi, yi, size_factor=0.125 if condition == "subarticular" else 0.15))
-	laterality = "" if condition == "spinal" else row.condition[:1]
-	level = f"{row.condition[:1]}_{row.level.replace('/', '_')}" if laterality != "" else row.level.replace('/', '_')
-	save_files = [os.path.join(save_dir, condition, f"{row.study_id}_{row.series_id}_{level}_INST{row.instance_number:06d}_{aug_idx:03d}.png") for aug_idx in range(len(crops))]
+			crops.append(crop_square_around_center(img, xi, yi, size_factor=0.15))
+	level = row.level.replace('/', '_')
+	save_files = [os.path.join(save_dir, f"{row.study_id}_{row.series_id}_{level}_INST{row.instance_number:06d}_{aug_idx:03d}.png") for aug_idx in range(len(crops))]
 	os.makedirs(os.path.dirname(save_files[0]), exist_ok=True)
 	for each_crop, each_save_file in zip(crops, save_files):
 		try:

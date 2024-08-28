@@ -43,11 +43,11 @@ ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_foramen_crops_
 ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_foramen_crops_bb_bce_gt/eff8f9a9/fold2/checkpoints/last.ckpt tiny_vit_foramen_fold2.pt
 ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_foramen_crops_bb_bce_gt/40f11c27/fold3/checkpoints/last.ckpt csn_r101_foramen_fold3.pt
 
-ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_spinal_crops_bb_bce_gt/000c3072/fold0/checkpoints/last.ckpt coatnet_spinal_fold0.pt
-ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_spinal_crops_bb_bce_gt/a08ed75e/fold1/checkpoints/last.ckpt maxvit_spinal_fold1.pt
-ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_spinal_crops_bb_bce_gt/48eac09f/fold2/checkpoints/last.ckpt tiny_vit_spinal_fold2.pt
-ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_spinal_crops_bb_bce_gt/8ac74f00/fold3/checkpoints/last.ckpt nfnet_spinal_fold3.pt
-ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_spinal_crops_bb_bce_gt/cb9f53be/fold4/checkpoints/last.ckpt csn_r101_spinal_fold4.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_axial_spinal_crops_bb_bce_gt/3015f93d/fold0/checkpoints/last.ckpt coatnet_ax_spinal_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_axial_spinal_crops_bb_bce_gt/f4ea8984/fold1/checkpoints/last.ckpt maxvit_ax_spinal_fold1.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_axial_spinal_crops_bb_bce_gt/69b4170c/fold2/checkpoints/last.ckpt tiny_vit_ax_spinal_fold2.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_axial_spinal_crops_bb_bce_gt/b29852f5/fold3/checkpoints/last.ckpt nfnet_ax_spinal_fold3.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_axial_spinal_crops_bb_bce_gt/ca55a6f3/fold4/checkpoints/last.ckpt csn_r101_ax_spinal_fold4.pt
 
 ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_subarticular_crops_bb_bce_gt/e5444e84/fold0/checkpoints/last.ckpt coatnet_suabrticular_fold0.pt
 ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_subarticular_crops_bb_bce_gt/3e9df9e9/fold1/checkpoints/last.ckpt maxvit_suabrticular_fold1.pt
