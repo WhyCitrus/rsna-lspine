@@ -21,6 +21,25 @@ class GeM(nn.Module):
         return self.flatten(x)
 
 
+class BasicAttention(nn.Module):
+
+    def __init__(self, emb_dim, att_dim, attn_dropout):
+        super().__init__()
+
+        self.attn = nn.Sequential(
+            nn.Linear(emb_dim, att_dim),
+            nn.Mish(),
+            nn.Dropout(attn_dropout),
+            nn.Linear(att_dim, 1),
+        )
+
+    def forward(self, x):
+        a = self.attn(x)
+        a = torch.softmax(a, dim=1)
+        x = torch.sum(x * a, dim=1)
+        return x, a
+
+
 class Net(nn.Module):
 
     def __init__(self, cfg):
@@ -34,7 +53,10 @@ class Net(nn.Module):
             "in_chans": self.cfg.num_input_channels
         }
         if self.cfg.backbone_img_size:
-            backbone_args["img_size"] = (self.cfg.image_height, self.cfg.image_width)
+            if "efficientvit" in self.cfg.backbone:
+                backbone_args["img_size"] = self.cfg.image_height
+            else:
+                backbone_args["img_size"] = (self.cfg.image_height, self.cfg.image_width)
         self.backbone = create_model(self.cfg.backbone, 
             **backbone_args)
         self.dim_feats = self.backbone(torch.randn((2, self.cfg.num_input_channels, self.cfg.image_height, self.cfg.image_width))).size(1)
@@ -48,6 +70,7 @@ class Net(nn.Module):
                                          stride=1, bias=False)
             self.dim_feats = self.cfg.reduce_feat_dim
 
+        self.attn = BasicAttention(self.dim_feats, self.cfg.att_dim or self.dim_feats, self.cfg.attn_dropout or 0.1)
         self.dropout = nn.Dropout(p=self.cfg.dropout) 
         self.linear = nn.Linear(self.dim_feats, self.cfg.num_classes)
 
@@ -102,8 +125,13 @@ class Net(nn.Module):
             assert isinstance(y, torch.Tensor)
 
         x = self.normalize(x) 
- 
+        # x.shape = (B, C, H, W)
+        B, C, H, W = x.shape
+        x = x.reshape(B*C, 1, H, W)
+
         features = self.pooling(self.backbone(x)) 
+        features = features.reshape(B, C, -1)
+        features, attn_weights = self.attn(features)
 
         if hasattr(self, "feat_reduce"):
             features = self.feat_reduce(features.unsqueeze(-1)).squeeze(-1) 

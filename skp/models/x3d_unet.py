@@ -83,13 +83,13 @@ class Net(nn.Module):
         self.encoder = X3DEncoder(self.cfg)
         self.change_num_input_channels()
         with torch.no_grad():
-            out = self.encoder(torch.randn((1, self.cfg.num_input_channels, self.cfg.roi_x, self.cfg.roi_y, self.cfg.roi_z)))
+            out = self.encoder(torch.randn((1, self.cfg.num_input_channels, self.cfg.image_z, self.cfg.image_height, self.cfg.image_width)))
             self.cfg.encoder_channels = [self.cfg.num_input_channels] + [o.shape[1] for o in out]
             del out
 
         self.decoder = UnetDecoder(self.cfg)
         self.segmentation_head = SegmentationHead(self.cfg.decoder_channels[-1], self.cfg.num_classes, 
-                                                  size=(self.cfg.roi_x, self.cfg.roi_y, self.cfg.roi_z),
+                                                  size=(self.cfg.image_z, self.cfg.image_height, self.cfg.image_width),
                                                   dropout=self.cfg.seg_dropout or 0)
 
         if self.cfg.deep_supervision:
@@ -173,7 +173,7 @@ class Net(nn.Module):
                 loss = self.criterion([logits, level1, level2], y)
             else:
                 loss = self.criterion(logits, y)
-            out["loss"] = loss
+            out.update(loss)
 
         return out
 

@@ -199,6 +199,7 @@ csn_r101     : 0.2962
 ensemble1    : 0.2891
 ensemble2    : 0.2897
 
+[any severe]
 coatnet      : 0.2804
 maxvit       : 0.2804
 tinyvit      : 0.2844
@@ -261,3 +262,70 @@ csn_r101_all : 0.2712
 
 ensemble1    : 0.2634
 ensemble2    : 0.2650 ["coatnet", "tinyvit", "nfnet", "coatnet_all", "nfnet_all"]
+
+SUBARTICULAR
+============
+
+coatnet      : 0.5682
+maxvit       : 0.5630
+tinyvit      : 0.5695
+nfnet        : 0.5642
+csn_r101     : 0.5631
+coatnet_all  : 0.5650
+maxvit_all   : 0.5643
+nfnet_all    : 0.5641
+tinyvit_all  : 0.5679
+csn_r101_all : 0.5615
+
+ensemble1    : 0.5559
+ensemble2    : 0.5546 ["nfnet", "maxvit", "csn_r101", "csn_r101_all", "nfnet_all"]
+
+---
+
+Do not select a slice, instead just crop using predicted (x, y) coordinates across all slices
+Then train model to predict whether slice is valid as well as stenosis grade (only compute loss for valid slices)
+During inference use 1 model to predict whether slice (crop) is valid, then average 
+Across valid crops
+
+SPINAL (mean)
+======
+
+coatnet      : 0.2812
+maxvit       : 0.2727
+tinyvit      : 0.2749
+csn_r101     : 0.2747
+
+ensemble1    : 0.2679
+ensemble2    : 0.2665 (exclude coatnet)
+
+[any severe]
+coatnet      : 0.2840
+maxvit       : 0.2774
+tinyvit      : 0.2665
+csn_r101     : 0.2710
+
+ensemble1    : 0.2676
+ensemble2    : 0.2646 (exclude coatnet)
+
+maxvit       : 0.2727
+tinyvit      : 0.2749
+csn_r101     : 0.2747
+maxvit_pool  : 0.2728
+coatnet_pool : 0.2750
+effnet_pool  : 0.2733
+
+ensemble1    : 0.2624
+ensemble2    : 0.2621 ["maxvit", "maxvit_pool", "csn_r101", "effnet_pool"]
+			   0.2623 ["maxvit", "maxvit_pool", "csn_r101", "tinyvit", "effnet_pool"]
+
+maxvit       : 0.2774
+tinyvit      : 0.2665
+csn_r101     : 0.2710
+maxvit_pool  : 0.2698
+coatnet_pool : 0.2709
+effnet_pool  : 0.2753
+
+ensemble1    : 0.2620
+ensemble2    : 0.2620 ["maxvit", "maxvit_pool", "csn_r101", "tinyvit", "effnet_pool"]
+
+Did not really work for foraminal

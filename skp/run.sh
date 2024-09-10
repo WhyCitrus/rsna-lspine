@@ -58,12 +58,11 @@ ts --gpus 2 python train.py cfg000_foramen_dist_coord_proba_no_upsample --sync_b
 ts --gpus 2 python train.py cfg000_foramen_dist_coord_proba_no_upsample --sync_batchnorm --benchmark --fold 4
 
 
-ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 0
-ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg_predict_axial_subarticular_coords --sync_batchnorm --benchmark --fold 4
-
+ts --gpus 2 python train.py cfg000_genv4_foramen_rank_crops_gt_trained --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv4_foramen_rank_crops_gt_trained --sync_batchnorm --benchmark --fold 1 --backbone maxvit_tiny_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv4_foramen_rank_crops_gt_trained --sync_batchnorm --benchmark --fold 2 --backbone maxvit_tiny_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv4_foramen_rank_crops_gt_trained --sync_batchnorm --benchmark --fold 3 --backbone maxvit_tiny_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv4_foramen_rank_crops_gt_trained --sync_batchnorm --benchmark --fold 4 --backbone maxvit_tiny_tf_512 --backbone_img_size True
 
 rsync -raz --progress -e 'ssh -p 26934' ian@3.tcp.ngrok.io:/home/ian/projects/rsna-lspine/data/train_sagittal_canal_crops .
 rsync -raz --progress -e 'ssh -p 26934' ian@3.tcp.ngrok.io:/home/ian/projects/rsna-lspine/data/train_pngs/2773343225 .
@@ -79,10 +78,30 @@ ts --gpus 2 python train.py cfg_foramina_3d_crops --sync_batchnorm --benchmark -
 python train.py cfg0_gen_det2_spinal_crops_embed_level --sync_batchnorm --benchmark --fold 0 --neptune_mode debug --backbone convnextv2_large.fcmae_ft_in22k_in1k_384
 python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug --data_dir ../data/train_x3d_generated_spinal_crops/canal
 python train.py cfg0_gen_det2_subarticular_crops_3d --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_gen_det2_spinal_crops --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg0_foramen_dist_coord_seg_v5_upsample_hard --sync_batchnorm --benchmark --fold 0 --neptune_mode debug
-python train.py cfg000_subarticular_dist_coord_proba_weighted_sampling --sync_batchnorm --benchmark --fold 0 --neptune_mode debug --backbone tf_efficientnetv2_m
+python train.py cfg000_genv4_foramen_rank_crops_gt_trained --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_512 --backbone_img_size True --neptune_mode debug
+python train.py cfg000_genv4_foramen_crops_bb_ce_gt_level --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_512 --backbone_img_size True --neptune_mode debug
 
+    - tf_efficientnetv2_m
+    - maxvit_tiny_tf_512
+    - coatnet_1_rw_224
+    - tiny_vit_21m_512.dist_in22k_ft_in1k
+    - csn_r101
+    - resnet200d
+    - dm_nfnet_f0.dm_in1k
+
+ts --gpus 2 python train.py cfg000_genv4_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone coatnet_1_rw_224 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv4_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_512 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_genv4_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_m 
+ts --gpus 2 python train.py cfg000_genv4_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tiny_vit_21m_512.dist_in22k_ft_in1k
+ts --gpus 2 python train.py cfg000_genv4_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone resnet200d
+ts --gpus 2 python train.py cfg000_genv4_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone dm_nfnet_f0.dm_in1k
+ts --gpus 2 python train.py cfg000_genv4_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --model net_csn_r101 --num_input_channels 1 --convert_to_3d True --neptune_mode debug
+
+python train.py cfg000_subarticular_classify_levels_present --sync_batchnorm --benchmark --fold 0
+python train.py cfg000_subarticular_classify_levels_present --sync_batchnorm --benchmark --fold 1
+python train.py cfg000_subarticular_classify_levels_present --sync_batchnorm --benchmark --fold 2
+python train.py cfg000_subarticular_classify_levels_present --sync_batchnorm --benchmark --fold 3
+python train.py cfg000_subarticular_classify_levels_present --sync_batchnorm --benchmark --fold 4
 
 python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 0
 python train.py cfg0_gen_det2_foraminal_crops_embed_level --sync_batchnorm --benchmark --fold 1
@@ -105,7 +124,7 @@ python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark -
 
 ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_512 --backbone_img_size True
 ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone maxvit_tiny_tf_384 --backbone_img_size True
-ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone coatnet_1_rw_224 --backbone_img_size True
+ts --gpus 2 python train.py cfg000_subarticular_dist_coord_proba_weighted_sampling --sync_batchnorm --benchmark --fold 0 --backbone coatnet_1_rw_224 --backbone_img_size True
 ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone coatnet_3_rw_224 --backbone_img_size True
 ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_s
 ts --gpus 2 python train.py cfg000_genv3_foramen_crops_bb_bce --sync_batchnorm --benchmark --fold 0 --backbone tf_efficientnetv2_m

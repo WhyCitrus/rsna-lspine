@@ -12,6 +12,56 @@ class BCEWithLogitsLoss(nn.BCEWithLogitsLoss):
         return F.binary_cross_entropy_with_logits(p.float(), t.float())
 
 
+class MaskedBCEWithLogitsSeq(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t, mask):
+        loss = F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none")[~mask]
+        return loss.mean()
+
+
+class BCEPlusCoords(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        cls_loss = F.binary_cross_entropy_with_logits(p[:, :13].float(), t[:, :13].float())
+        reg_loss = F.l1_loss(p[:, 13:].float(), t[:, 13:].float(), reduction="none")
+        reg_loss = reg_loss.reshape(-1)
+        ignore = t[:, 13:].reshape(-1)
+        reg_loss = reg_loss[ignore != -1].mean()
+        loss_dict = {"loss": cls_loss + reg_loss, "cls_loss": cls_loss, "reg_loss": reg_loss}
+        return loss_dict
+
+
+class MaskedBCEWithLogitsSeqPlusCoords(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t, mask):
+        cls_loss = F.binary_cross_entropy_with_logits(p[:, :, :13].float(), t[:, :, :13].float(), reduction="none")[~mask].mean()
+        reg_loss = F.l1_loss(p[:, :, 13:].float(), t[:, :, 13:].float(), reduction="none")[~mask]
+        reg_loss = reg_loss.reshape(-1)
+        ignore = t[:, :, 13:][~mask].reshape(-1)
+        reg_loss = reg_loss[ignore != -1].mean()
+        loss_dict = {"loss": cls_loss + reg_loss, "cls_loss": cls_loss, "reg_loss": reg_loss}
+        return loss_dict
+
+
+class LevelAndDist(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        p1, p2, p3 = p[:, :11], p[:, [11, 12]], p[:, 13:]
+        t1, t2, t3 = t[:, :11], t[:, [11, 12]], t[:, 13:]
+        assert p1.size(1) == t1.size(1) == 11
+        assert p2.size(1) == t2.size(1) == 2 
+        assert p3.size(1) == t3.size(1) == 10 
+        loss_dict = {}
+        level_loss = F.cross_entropy(p1.float(), torch.argmax(t1, dim=1).long())
+        subart_loss = F.binary_cross_entropy_with_logits(p2.float(), t2.float())
+        dist_loss = F.l1_loss(p3.float(), t3.float())
+        loss_dict["level_loss"] = level_loss
+        loss_dict["subart_loss"] = subart_loss
+        loss_dict["dist_loss"] = dist_loss
+        loss_dict["loss"] = loss_dict["level_loss"] + loss_dict["subart_loss"] + loss_dict["dist_loss"]
+        return loss_dict
+
+
 class ClassWeightedBCE(nn.Module):
 
     def __init__(self):
@@ -38,6 +88,49 @@ class SampleWeightedLogLossV2(nn.BCEWithLogitsLoss):
         w[t[:, 2] == 1] = 4
         loss = (F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none") * w.float().to(p.device)).mean()
         return loss
+
+
+class SampledWeightedBCEWithValidSlice(nn.Module):
+
+    def forward(self, p, t):
+        p, pv = p[:, :3], p[:, 3]
+        t, tv = t[:, :3], t[:, 3]
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        w = w.to(p.device)
+        loss1 = (F.binary_cross_entropy_with_logits(p[tv > 0].float(), t[tv > 0].float(), reduction="none") * w[tv > 0].float()).mean()
+        loss2 = F.binary_cross_entropy_with_logits(pv.float(), tv.float())
+        return loss1 + loss2
+
+
+class SampledWeightedCrossEntropyWithValidSlice(nn.Module):
+
+    def forward(self, p, t):
+        p, pv = p[:, :3], p[:, 3]
+        t, tv = t[:, :3], t[:, 3]
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        w = w.to(p.device)
+        t = torch.argmax(t, dim=1)
+        loss1 = (F.cross_entropy(p[tv > 0].float(), t[tv > 0].long(), reduction="none") * w[tv > 0].float()).mean()
+        loss2 = F.binary_cross_entropy_with_logits(pv.float(), tv.float())
+        return loss1 + loss2
+
+
+class SampledWeightedBCEWithValidSliceV2(nn.Module):
+
+    def forward(self, p, t):
+        p, pv = p[:, :3], p[:, 3]
+        t, tv = t[:, :3], t[:, 3]
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        w = w.to(p.device)
+        loss1 = (F.binary_cross_entropy_with_logits(p[pv >= 0].float(), t[pv >= 0].float(), reduction="none") * w[pv >= 0].float()).mean()
+        loss2 = F.binary_cross_entropy_with_logits(pv.float(), tv.float())
+        return loss1 + loss2
 
 
 class SampleWeightedLogLossAll(nn.BCEWithLogitsLoss):
@@ -286,6 +379,58 @@ class L1LossDistanceAndCoords(nn.Module):
         dist_loss = (F.l1_loss(p[:, :10].float(), t[:, :10].float()) + F.mse_loss(p[:, :10].float(), t[:, :10].float()) / 10) / 2.
         coord_loss = (F.l1_loss(p[:, 10:].sigmoid().float(), t[:, 10:].float()) + F.mse_loss(p[:, 10:].sigmoid().float(), t[:, 10:].float())) / 2.
         return {"loss": dist_loss + 100 * coord_loss, "dist_loss": dist_loss, "coord_loss": coord_loss}
+
+
+class SimpleDiceBCE(nn.Module):
+
+    def __init__(self, eps=1e-5, bce_weight=0.2):
+        super().__init__()
+        self.eps = eps
+        self.bce_weight = bce_weight
+
+    def forward(self, p, t):
+        assert p.shape == t.shape
+        p, t = p.float(), t.float()
+        intersection = torch.sum(p.sigmoid() * t, dim=(2, 3))
+        denominator = torch.sum(p.sigmoid(), dim=(2, 3)) + torch.sum(t, dim=(2, 3)) 
+        dice = (2. * intersection + self.eps) / (denominator + self.eps)
+        dice_loss = (1 - dice).mean()
+        bce_loss = F.binary_cross_entropy_with_logits(p, t)
+        return {"loss": dice_loss + self.bce_weight * bce_loss, "dice_loss": dice_loss, "bce_loss": bce_loss}
+
+
+class SimpleDiceBCE_3d(nn.Module):
+
+    def __init__(self, eps=1e-5, bce_weight=0.2):
+        super().__init__()
+        self.eps = eps
+        self.bce_weight = bce_weight
+
+    def forward(self, p, t):
+        assert p.shape == t.shape
+        p, t = p.float(), t.float()
+        intersection = torch.sum(p.sigmoid() * t, dim=(2, 3, 4))
+        denominator = torch.sum(p.sigmoid(), dim=(2, 3, 4)) + torch.sum(t, dim=(2, 3, 4)) 
+        dice = (2. * intersection + self.eps) / (denominator + self.eps)
+        dice_loss = (1 - dice).mean()
+        bce_loss = F.binary_cross_entropy_with_logits(p, t)
+        return {"loss": dice_loss + self.bce_weight * bce_loss, "dice_loss": dice_loss, "bce_loss": bce_loss}
+
+
+class SimpleDice_3d(nn.Module):
+
+    def __init__(self, eps=1e-5):
+        super().__init__()
+        self.eps = eps
+
+    def forward(self, p, t):
+        assert p.shape == t.shape
+        p, t = p.float(), t.float()
+        intersection = torch.sum(p.sigmoid() * t, dim=(2, 3, 4))
+        denominator = torch.sum(p.sigmoid(), dim=(2, 3, 4)) + torch.sum(t, dim=(2, 3, 4)) 
+        dice = (2. * intersection + self.eps) / (denominator + self.eps)
+        dice_loss = (1 - dice).mean()
+        return {"loss": dice_loss}
 
 
 class SigmoidDiceBCELoss(nn.Module):

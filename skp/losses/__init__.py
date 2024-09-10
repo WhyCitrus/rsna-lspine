@@ -15,13 +15,25 @@ class DeepSupervisionWrapper(nn.Module):
     def forward(self, p, t):
         assert len(p) == len(self.weights), f"length of p is [{len(p)}] whereas # of weights is [{len(self.weights)}]"
         self.weights = self.weights.to(t.device)
-        loss = torch.tensor(0.).to(t.device)
-        for level_idx, level_p in enumerate(p):
-            if level_p.shape[2:] != t.shape[2:]:
-                loss += self.weights[level_idx] * self.loss_func(level_p, F.interpolate(t.float(), size=level_p.shape[2:], mode="nearest"))
-            else:
-                loss += self.weights[level_idx] * self.loss_func(level_p, t)
-        return loss / self.weights.sum()
+        # Calculate original loss
+        loss_dict = self.loss_func(p[0], t)
+        # Save original loss for tracking
+        for k, v in loss_dict.copy().items():
+            loss_dict[k+"_orig"] = v
+        # Multiply by weight
+        loss_dict = {k: self.weights[0] * v if "orig" not in k else v for k, v in loss_dict.items()}
+        for level_idx, level_p in enumerate(p[1:]):
+            # Calculate losses for preceding levels
+            tmp_loss_dict = self.loss_func(level_p, F.interpolate(t.float(), size=level_p.shape[2:], mode="nearest"))
+            # Multiply by weight
+            for k, v in tmp_loss_dict.items():
+                loss_dict[k] += self.weights[level_idx + 1] * v
+        # Scale by sum of weights
+        for k, v in loss_dict.items():
+            if "orig" in k:
+                continue
+            loss_dict[k] = v / self.weights.sum()
+        return loss_dict
 
 
 def get_loss(cfg):

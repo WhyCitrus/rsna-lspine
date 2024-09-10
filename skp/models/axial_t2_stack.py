@@ -34,7 +34,10 @@ class Net(nn.Module):
             "in_chans": self.cfg.num_input_channels
         }
         if self.cfg.backbone_img_size:
-            backbone_args["img_size"] = (self.cfg.image_height, self.cfg.image_width)
+            if "efficientvit" in self.cfg.backbone:
+                backbone_args["img_size"] = self.cfg.image_height
+            else:
+                backbone_args["img_size"] = (self.cfg.image_height, self.cfg.image_width) 
         self.backbone = create_model(self.cfg.backbone, 
             **backbone_args)
         self.dim_feats = self.backbone(torch.randn((2, self.cfg.num_input_channels, self.cfg.image_height, self.cfg.image_width))).size(1)
@@ -49,6 +52,19 @@ class Net(nn.Module):
             self.dim_feats = self.cfg.reduce_feat_dim
 
         self.dropout = nn.Dropout(p=self.cfg.dropout) 
+
+        layer = nn.TransformerEncoderLayer(
+            d_model=self.dim_feats,
+            nhead=cfg.transformer_nhead or 16,
+            dim_feedforward=self.dim_feats * (cfg.expansion_factor or 4),
+            dropout=cfg.transformer_dropout or 0.1,
+            activation=cfg.transformer_activation or "gelu",
+            batch_first=True
+        )
+
+        self.transformer_head = nn.TransformerEncoder(layer, 
+            num_layers=cfg.transformer_num_layers)
+
         self.linear = nn.Linear(self.dim_feats, self.cfg.num_classes)
 
         if self.cfg.load_pretrained_backbone:
@@ -64,10 +80,12 @@ class Net(nn.Module):
             if len(feat_reduce_weight) > 0:
                 self.feat_reduce.load_state_dict(feat_reduce_weight)
 
-        self.backbone_frozen = False
         if self.cfg.freeze_backbone:
             self.freeze_backbone()
-            self.backbone_frozen = True
+
+        for module in self.backbone.modules():
+            if isinstance(module, nn.SiLU):
+                module.inplace = False
 
     def normalize(self, x):
         if self.cfg.normalization == "-1_1":
@@ -97,16 +115,29 @@ class Net(nn.Module):
     def forward(self, batch, return_loss=False, return_features=False):
         x = batch["x"]
         y = batch["y"] if "y" in batch else None
+        mask = batch["mask"] if "mask" in batch else None
 
         if return_loss:
             assert isinstance(y, torch.Tensor)
 
         x = self.normalize(x) 
- 
-        features = self.pooling(self.backbone(x)) 
+        # x.shape = (B, Z, C, H, W)
+        B, Z, C, H, W = x.shape
+        x = x.reshape(B*Z, C, H, W)
 
         if hasattr(self, "feat_reduce"):
-            features = self.feat_reduce(features.unsqueeze(-1)).squeeze(-1) 
+            # features = torch.stack([self.feat_reduce(self.pooling(self.backbone(x[:, :, each_z])).unsqueeze(-1)).squeeze(-1) for each_z in range(Z)], dim=1) 
+            features = self.backbone(x)
+            features = self.pooling(features).unsqueeze(-1)
+            features = self.feat_reduce(features).squeeze(-1)
+            # features = self.feat_reduce(self.pooling(self.backbone(x)))
+            features = features.reshape(B, Z, -1)
+        else:
+            features = self.backbone(x)
+            features = self.pooling(features)
+            features = features.reshape(B, Z, -1)
+
+        features = self.transformer_head(features, src_key_padding_mask=mask)
 
         if self.cfg.multisample_dropout:
             logits = torch.mean(torch.stack([self.linear(self.dropout(features)) for _ in range(5)]), dim=0)
@@ -114,15 +145,16 @@ class Net(nn.Module):
             logits = self.linear(self.dropout(features))
 
         out = {"logits": logits}
+
         if return_features:
             out["features"] = features 
+
         if return_loss: 
-            loss = self.criterion(logits, y, w=batch["wts"]) if "wts" in batch else self.criterion(logits, y)
+            loss = self.criterion(logits, y, mask=mask) if "mask" in batch else self.criterion(logits, y)
             if isinstance(loss, dict):
                 out.update(loss)
             else:
                 out["loss"] = loss
-
         return out
 
     def get_pool_layer(self):

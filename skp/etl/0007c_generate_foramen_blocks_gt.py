@@ -54,4 +54,5 @@ description_df = description_df.loc[description_df.series_description == "Sagitt
 train_df = train_df.merge(description_df, on="study_id")
 train_df["image_folder"] = train_df.study_id.astype("str") + "_" + train_df.series_id.astype("str") + "_" + train_df.level
 train_df = train_df[~train_df.series_id.isin(bad)]
+train_df = train_df[train_df.study_id.isin(coords_df.study_id.tolist())]
 train_df.to_csv("../../data/train_foramen_blocks_gt.csv", index=False)

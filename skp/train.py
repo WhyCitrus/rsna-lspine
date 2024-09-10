@@ -235,6 +235,9 @@ def main():
     task.set("val_metric", cfg.val_metric)
 
     trainer, cfg = get_trainer(cfg, args)
+
+    print(f"Run ID : {cfg.run_id}")
+    
     trainer.fit(task)
     symlink_best_model_path(trainer)
 

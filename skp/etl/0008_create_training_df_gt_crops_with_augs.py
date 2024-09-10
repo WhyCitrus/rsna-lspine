@@ -39,3 +39,25 @@ gt_axial_spinal.to_csv("../../data/train_gt_axial_spinal_with_augs_kfold.csv", i
 gt_foraminal.to_csv("../../data/train_gt_foraminal_with_augs_kfold.csv", index=False)
 gt_subarticular.to_csv("../../data/train_gt_subarticular_with_augs_kfold.csv", index=False)
 gt_sag_subarticular.to_csv("../../data/train_gt_sag_subarticular_with_augs_kfold_v2.csv", index=False)
+
+
+import glob
+import os
+import pandas as pd
+
+
+folds_df = pd.read_csv("../../data/folds_cv5.csv")
+train_df = pd.read_csv("../../data/train_narrow.csv")
+
+images = glob.glob(os.path.join("../../data/train_sag_t2_subarticular_crops_gt/", "*"))
+df = pd.DataFrame({"filepath": images})
+df["filepath"] = df.filepath.map(os.path.basename)
+df["study_id"] = df.filepath.apply(lambda x: x.split("_")[0]).astype("int")
+df["level"] = df.filepath.apply(lambda x: "_".join(x.split("_")[-2:]))
+df["laterality"] = df.filepath.apply(lambda x: x.split("_")[-3])
+df = df.merge(folds_df, on="study_id")
+df = df.merge(train_df.loc[train_df.condition == "subarticular"], on=["study_id", "level", "laterality"])
+
+df.to_csv("../../data/train_gt_sag_subarticular_gt_kfold.csv", index=False)
+
+

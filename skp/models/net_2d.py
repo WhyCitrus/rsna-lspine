@@ -34,7 +34,10 @@ class Net(nn.Module):
             "in_chans": self.cfg.num_input_channels
         }
         if self.cfg.backbone_img_size:
-            backbone_args["img_size"] = (self.cfg.image_height, self.cfg.image_width)
+            if "efficientvit" in self.cfg.backbone:
+                backbone_args["img_size"] = self.cfg.image_height
+            else:
+                backbone_args["img_size"] = (self.cfg.image_height, self.cfg.image_width)
         self.backbone = create_model(self.cfg.backbone, 
             **backbone_args)
         self.dim_feats = self.backbone(torch.randn((2, self.cfg.num_input_channels, self.cfg.image_height, self.cfg.image_width))).size(1)

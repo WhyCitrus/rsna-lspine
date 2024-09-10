@@ -75,3 +75,4 @@ for row in tqdm(coords_df.itertuples(), total=len(coords_df)):
 		except Exception as e:
 			print(row.series_id, e)
 			failed.append(row.index)
+			
