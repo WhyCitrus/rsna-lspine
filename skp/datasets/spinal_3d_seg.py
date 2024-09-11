@@ -92,7 +92,12 @@ class Dataset(TorchDataset):
         x = np.stack([transformed["image"]] + [transformed[f"image{idx}"] for idx in range(1, x.shape[0])])
         x = torch.from_numpy(x)
         x = x.float()
-        x = x.permute(3, 0, 1, 2)
+        if self.cfg.for_2d_model:
+            # shape : N, H, W, C -> N, C, H, W
+            x = x.permute(0, 3, 1, 2)
+        else:
+            # shape : N, H, W, C -> C, N, H, W
+            x = x.permute(3, 0, 1, 2)
 
         y = np.stack([transformed["mask"]] + [transformed[f"mask{idx}"] for idx in range(1, y.shape[0])])
         y = torch.from_numpy(y)
