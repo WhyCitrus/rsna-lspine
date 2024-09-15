@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from monai.losses import DiceLoss
+from monai.losses import DiceLoss, GeneralizedDiceLoss, DiceCELoss
 from torchvision.ops import sigmoid_focal_loss
 
 
@@ -363,6 +363,58 @@ class CrossEntropyLoss(nn.CrossEntropyLoss):
         if t.ndim == 2:
             t = t[:, 0]
         return F.cross_entropy(p.float(), t.long())
+
+
+class LevelSubartDistSeq(nn.Module):
+
+    def forward(self, p, t, mask):
+        p1, p2 = p[:, :, :16], p[:, :, 16:]
+        t1, t2 = t[:, :, :16], t[:, :, 16:]
+        assert p1.size(2) == t1.size(2) == 16
+        assert p2.size(2) == t2.size(2) == 10
+        # BCE 
+        cls_loss = F.binary_cross_entropy_with_logits(p1.float(), t1.float(), reduction="none")[~mask].mean()
+        # L1
+        dist_loss = F.smooth_l1_loss(p2.float(), t2.float(), reduction="none")[~mask].mean()
+        return {"loss": cls_loss + dist_loss, "cls_loss": cls_loss, "dist_loss": dist_loss}
+
+
+class LevelSpinalDistSeq(nn.Module):
+
+    def forward(self, p, t, mask):
+        p1, p2 = p[:, :, :5], p[:, :, 5:]
+        t1, t2 = t[:, :, :5], t[:, :, 5:]
+        assert p1.size(2) == t1.size(2) == 5
+        assert p2.size(2) == t2.size(2) == 5
+        # BCE 
+        cls_loss = F.binary_cross_entropy_with_logits(p1.float(), t1.float(), reduction="none")[~mask].mean()
+        # L1
+        dist_loss = F.smooth_l1_loss(p2.float(), t2.float(), reduction="none")[~mask].mean()
+        return {"loss": cls_loss + dist_loss, "cls_loss": cls_loss, "dist_loss": dist_loss}
+
+
+class LevelForaminaDistSeq(nn.Module):
+
+    def forward(self, p, t, mask):
+        p1, p2 = p[:, :, :10], p[:, :, 10:]
+        t1, t2 = t[:, :, :10], t[:, :, 10:]
+        assert p1.size(2) == t1.size(2) == 10
+        assert p2.size(2) == t2.size(2) == 10
+        # BCE 
+        cls_loss = F.binary_cross_entropy_with_logits(p1.float(), t1.float(), reduction="none")[~mask].mean()
+        # L1
+        dist_loss = F.smooth_l1_loss(p2.float(), t2.float(), reduction="none")[~mask].mean()
+        return {"loss": cls_loss + dist_loss, "cls_loss": cls_loss, "dist_loss": dist_loss}
+
+
+class GeneralizedDSC(nn.Module):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.loss_func = DiceLoss(include_background=True, to_onehot_y=True, sigmoid=False, softmax=True)
+
+    def forward(self, p, t):
+        return {"loss": self.loss_func(p, t)}
 
 
 class L1Loss(nn.L1Loss):

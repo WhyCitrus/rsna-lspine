@@ -136,8 +136,8 @@ class AUROCSeq(_BaseMetric):
 
     def compute(self):
         # use batch_size 1
-        p = torch.cat([_[0] for _ in self.p], dim=0).cpu().sigmoid().numpy()[:, :13] # (N, C)
-        t = torch.cat([_[0] for _ in self.t], dim=0).cpu().numpy()[:, :13] # (N, C)
+        p = torch.cat([_[0] for _ in self.p], dim=0).cpu().sigmoid().numpy()[:, :16] # (N, C)
+        t = torch.cat([_[0] for _ in self.t], dim=0).cpu().numpy()[:, :16] # (N, C)
         metrics_dict = {}
         for c in range(p.shape[1]):
             # Depends on whether it is multilabel or multiclass
@@ -145,6 +145,48 @@ class AUROCSeq(_BaseMetric):
             tmp_gt = t == c if t.shape[1] != p.shape[1] else t[:, c]
             metrics_dict[f"auc{c}"] = _roc_auc_score(tmp_gt, p[:, c])
         metrics_dict[f"auc_mean"] = np.mean([v for v in metrics_dict.values()])
+        return metrics_dict
+
+
+class AUROCDistSeq(_BaseMetric):
+
+    def compute(self):
+        # use batch_size 1
+        p = torch.cat([_[0] for _ in self.p], dim=0).cpu()
+        t = torch.cat([_[0] for _ in self.t], dim=0).cpu().numpy()
+        p1, p2 = p.sigmoid().numpy()[:, :5], p.numpy()[:, 5:]
+        t1, t2 = t[:, :5], t[:, 5:]
+        metrics_dict = {}
+        for c in range(p1.shape[1]):
+            # Depends on whether it is multilabel or multiclass
+            # If multiclass using CE loss, p.shape[1] = num_classes and t.shape[1] = 1
+            tmp_gt = t1 == c if t1.shape[1] != p1.shape[1] else t1[:, c]
+            metrics_dict[f"auc{c}"] = _roc_auc_score(tmp_gt, p1[:, c])
+        metrics_dict["auc_mean"] = np.mean([v for v in metrics_dict.values()])
+        for c in range(p2.shape[1]):
+            metrics_dict[f"dist{c}"] = np.mean(np.abs(p2[:, c] - t2[:, c]))
+        metrics_dict["dist_mean"] = np.mean([v for k, v in metrics_dict.items() if "dist" in k])
+        return metrics_dict
+
+
+class AUROCDistSeq2(_BaseMetric):
+
+    def compute(self):
+        # use batch_size 1
+        p = torch.cat([_[0] for _ in self.p], dim=0).cpu()
+        t = torch.cat([_[0] for _ in self.t], dim=0).cpu().numpy()
+        p1, p2 = p.sigmoid().numpy()[:, :10], p.numpy()[:, 10:]
+        t1, t2 = t[:, :10], t[:, 10:]
+        metrics_dict = {}
+        for c in range(p1.shape[1]):
+            # Depends on whether it is multilabel or multiclass
+            # If multiclass using CE loss, p.shape[1] = num_classes and t.shape[1] = 1
+            tmp_gt = t1 == c if t1.shape[1] != p1.shape[1] else t1[:, c]
+            metrics_dict[f"auc{c}"] = _roc_auc_score(tmp_gt, p1[:, c])
+        metrics_dict["auc_mean"] = np.mean([v for v in metrics_dict.values()])
+        for c in range(p2.shape[1]):
+            metrics_dict[f"dist{c}"] = np.mean(np.abs(p2[:, c] - t2[:, c]))
+        metrics_dict["dist_mean"] = np.mean([v for k, v in metrics_dict.items() if "dist" in k])
         return metrics_dict
 
 
@@ -339,6 +381,22 @@ class CompetitionMetricPlusAUROCSigmoid(_BaseMetric):
 
     def compute(self):
         p = torch.cat(self.p, dim=0).cpu().sigmoid()
+        t = torch.cat(self.t, dim=0).cpu()
+        wts = np.ones((len(p), ))
+        wts[t[:, 1] == 1] = 2
+        wts[t[:, 2] == 1] = 4
+        metrics_dict = {"comp_loss": skm.log_loss(y_true=t, y_pred=p, sample_weight=wts)}
+        for i in range(p.shape[1]):
+            metrics_dict[f"auc{i}"] = _roc_auc_score(t=t[:, i], p=p[:, i])
+        metrics_dict["auc_mean"] = np.mean([v for k, v in metrics_dict.items() if "auc" in k])
+        return metrics_dict
+
+
+
+class CompetitionMetricPlusAUROCSoftmax(_BaseMetric):
+
+    def compute(self):
+        p = torch.softmax(torch.cat(self.p, dim=0).cpu(), dim=1)
         t = torch.cat(self.t, dim=0).cpu()
         wts = np.ones((len(p), ))
         wts[t[:, 1] == 1] = 2

@@ -307,6 +307,8 @@ csn_r101     : 0.2710
 ensemble1    : 0.2676
 ensemble2    : 0.2646 (exclude coatnet)
 
+Include attention pooling models
+
 maxvit       : 0.2727
 tinyvit      : 0.2749
 csn_r101     : 0.2747
@@ -329,3 +331,63 @@ ensemble1    : 0.2620
 ensemble2    : 0.2620 ["maxvit", "maxvit_pool", "csn_r101", "tinyvit", "effnet_pool"]
 
 Did not really work for foraminal
+
+---
+
+Use attention pooling models (3 slices)
+
+coatnet      : 0.4896
+maxvit       : 0.4872
+tinyvit      : 0.4898
+csn_r101     : 0.4877
+coatnet_pool : 0.4893
+maxvit_pool  : 0.4950
+effnet_pool  : 0.5034
+
+ensemble1    : 0.4742
+ensemble2    : 0.4748 ["coatnet_pool", "maxvit_pool", "maxvit", "csn_r101"]
+
+---
+
+Improved axial T2 localization
+
+Spinal Axial T2
+
+coatnet      : 0.2869
+csn_r101     : 0.2935
+maxvit       : 0.2902
+nfnet        : 0.3040
+tinyvit      : 0.2904
+ensemble_all : 0.2824
+ensemble_top : 0.2822 [exclude nfnet]
+ANY SEVERE SPINAL
+coatnet      : 0.2788
+csn_r101     : 0.2852
+maxvit       : 0.2773
+nfnet        : 0.2938
+tinyvit      : 0.2814
+ensemble_all : 0.2748
+ensemble_top : 0.2736 [exclude nfnet]
+
+Spinal Sagittal T2
+
+csn_r101_all    : 0.2786
+effnet_pool_all : 0.2790
+maxvit_all      : 0.2759
+maxvit_pool_all : 0.2781
+tinyvit_all     : 0.2776
+ensemble_all    : 0.2662
+ensemble_top    : 0.2759
+ANY SEVERE SPINAL
+csn_r101_all    : 0.2659
+effnet_pool_all : 0.2689
+maxvit_all      : 0.2722
+maxvit_pool_all : 0.2678
+tinyvit_all     : 0.2630
+ensemble_all    : 0.2592
+ensemble_top    : 0.2722
+
+SAG + AX SPINAL ENSEMBLE
+ensemble     : 0.2501
+ANY SEVERE SPINAL
+ensemble     : 0.2542
