@@ -391,3 +391,19 @@ SAG + AX SPINAL ENSEMBLE
 ensemble     : 0.2501
 ANY SEVERE SPINAL
 ensemble     : 0.2542
+
+Subarticular
+
+coatnet         : 0.5615
+coatnet_pool    : 0.5616
+convnext_pool   : 0.5811
+csn_r101        : 0.5551
+effnet_pool     : 0.5593
+maxvit          : 0.5555
+maxvit_pool     : 0.5584
+nfnet           : 0.5575
+nfnet_pool      : 0.5594
+resnest_pool    : 0.5645
+tinyvit         : 0.5632
+ensemble_all    : 0.5477
+ensemble_top    : 0.5464 ["coatnet_pool", "csn_r101", "effnet_pool", "nfnet", "maxvit_pool"]
