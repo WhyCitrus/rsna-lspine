@@ -1,4 +1,4 @@
-FORAMEN
+,FORAMEN
 =======
 coatnet      : 0.4904
 maxvit       : 0.4842
@@ -407,3 +407,103 @@ resnest_pool    : 0.5645
 tinyvit         : 0.5632
 ensemble_all    : 0.5477
 ensemble_top    : 0.5464 ["coatnet_pool", "csn_r101", "effnet_pool", "nfnet", "maxvit_pool"]
+
+---
+
+Foraminal
+
+coatnet_pool    : 0.4924
+csn_r101        : 0.4878
+maxvit          : 0.4865
+maxvit_pool     : 0.5001
+ensemble_all    : 0.4747
+ensemble_top    : 0.4747 
+
+Spinal (Sagittal)
+
+csn_r101_all    : 0.2786
+effnet_pool_all : 0.2790
+maxvit_all      : 0.2759
+maxvit_pool_all : 0.2781
+tinyvit_all     : 0.2776
+ensemble_all    : 0.2662
+ensemble_top    : 0.2662
+ANY SEVERE SPINAL
+csn_r101_all    : 0.2659
+effnet_pool_all : 0.2689
+maxvit_all      : 0.2722
+maxvit_pool_all : 0.2678
+tinyvit_all     : 0.2630
+ensemble_all    : 0.2592
+ensemble_top    : 0.2592
+
+Subarticular
+
+coatnet_pool    : 0.5616
+csn_r101        : 0.5551
+effnet_pool     : 0.5593
+maxvit_pool     : 0.5584
+nfnet           : 0.5575
+ensemble_all    : 0.5453
+ensemble_top    : 0.5453
+
+Spinal (Axial)
+coatnet      : 0.2869
+coatnet_pool : 0.2852
+csn_r101     : 0.2935
+maxvit       : 0.2902
+maxvit_pool  : 0.2962
+nfnet        : 0.3040
+tinyvit      : 0.2904
+ensemble_all : 0.2773
+ensemble_top : 0.2781 ["coatnet", "coatnet_pool", "maxvit", "tinyvit", "csn_r101"]
+ANY SEVERE SPINAL
+coatnet      : 0.2788
+coatnet_pool : 0.2763
+csn_r101     : 0.2852
+maxvit       : 0.2773
+maxvit_pool  : 0.2906
+nfnet        : 0.2938
+tinyvit      : 0.2814
+ensemble_all : 0.2717
+ensemble_top : 0.2705 ["coatnet", "coatnet_pool", "maxvit", "tinyvit", "csn_r101"]
+
+Spinal (Sagittal + Axial)
+ensemble_top : 0.2493
+ANY SEVERE SPINAL:
+ensemble_top : 0.2532
+
+(0.4747 + 0.5453 + 0.2493 + 0.2532) / 4.0 = 0.3806
+
+USE TRANSFORMED SAGITTAL T2 COORDINATE PREDICTIONS AS INPUT TO AXIAL T2 LOCALIZATION MODEL
+
+SUBARTICULAR
+coatnet_pool    : 0.5550
+csn_r101        : 0.5484
+effnet_pool     : 0.5530
+maxvit_pool     : 0.5525
+nfnet           : 0.5505
+ensemble_all    : 0.5392
+
+SPINAL (AXIAL T2)
+coatnet      : 0.2793
+coatnet_pool : 0.2805
+csn_r101     : 0.2859
+maxvit       : 0.2796
+tinyvit      : 0.2822
+ensemble_all : 0.2715
+ensemble_top : 0.2715
+ANY SEVERE SPINAL
+coatnet      : 0.2715
+coatnet_pool : 0.2705
+csn_r101     : 0.2780
+maxvit       : 0.2682
+tinyvit      : 0.2749
+ensemble_all : 0.2645
+ensemble_top : 0.2645
+
+SPINAL (AX + SAG)
+ensemble     : 0.2569
+ANY SEVERE SPINAL
+ensemble     : 0.2513
+combined     : 0.5081

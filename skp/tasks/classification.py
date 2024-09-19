@@ -93,7 +93,7 @@ class Task(pl.LightningModule):
             for k,v in metrics.items():
                 self.logger.experiment[f"val/{k}"].append(v)
 
-            self.log("val_metric", metrics["val_metric"], sync_dist=True)
+            self.log("val_metric", metrics["val_metric"].to(self.device), sync_dist=True)
 
     def configure_optimizers(self):
         lr_scheduler = {

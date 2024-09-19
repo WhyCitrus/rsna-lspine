@@ -243,9 +243,7 @@ class Net(nn.Module):
         self.segmentation_head = SegmentationHead(self.cfg.decoder_channels[-1], self.cfg.seg_num_classes, 
                                                   size=(self.cfg.image_height, self.cfg.image_width),
                                                   dropout=self.cfg.seg_dropout or 0)
-        self.pooling = self.get_pool_layer()
-        self.classification_head = ClassificationHead(self.cfg.encoder_channels[-1], self.cfg.cls_num_classes,
-                                                      dropout=self.cfg.cls_dropout or 0)
+
         if self.cfg.deep_supervision:
             self.aux_segmentation_head1 = SegmentationHead(self.cfg.decoder_channels[-2], 
                                                            self.cfg.seg_num_classes,
@@ -278,9 +276,6 @@ class Net(nn.Module):
                     aux_segmentation_head2_weights = {re.sub(r"^model\.aux_segmentation_head2\.", "", k): v for k, v in weights.items() if bool(re.search(r"^model\.aux_segmentation_head2", k))}
                     self.aux_segmentation_head1.load_state_dict(aux_segmentation_head1_weights)
                     self.aux_segmentation_head2.load_state_dict(aux_segmentation_head2_weights)
-            if not self.cfg.do_not_load_classification_head:
-                classification_headweights = {re.sub(r"^model\.classification_head\.", "", k): v for k, v in weights.items() if bool(re.search(r"^model\.classification_head", k))}
-                self.classification_head.load_state_dict(classification_head_weights)
             self.encoder.load_state_dict(encoder_weights)
             self.decoder.load_state_dict(decoder_weights)
 
@@ -307,7 +302,7 @@ class Net(nn.Module):
             x = (x - mean) / sd
         return x 
 
-    def forward(self, batch, return_loss=False, return_features=False, cls_only=False):
+    def forward(self, batch, return_loss=False, return_features=False):
         x = batch["x"]
         y_cls = batch["y_cls"] if "y_cls" in batch else None
         y_seg = batch["y_seg"] if "y_seg" in batch else None
@@ -318,20 +313,20 @@ class Net(nn.Module):
 
         x = self.normalize(x) 
         feature_maps = [x] + self.encoder(x)
-        features_cls = self.pooling(feature_maps[-1])
-        logits_cls = self.classification_head(features_cls)
-        if not cls_only:
-            decoder_output = self.decoder(*feature_maps)
-            logits_seg = self.segmentation_head(decoder_output[-1])
-        else:    
-            logits_seg = None
-            
+        decoder_output = self.decoder(*feature_maps)
+        logits_seg = self.segmentation_head(decoder_output[-1])
+        logits_cls = logits_seg.amax((-1, -2))
+        # max seems to be better than top-K
+        # B, C = logits_seg.shape[:2]
+        # logits_cls, _ = logits_seg.reshape(B, C, -1).topk(self.cfg.top_k or 1, dim=-1)
+        # logits_cls = logits_cls.mean(-1)
+
         out = {"logits_seg": logits_seg, "logits_cls": logits_cls}
 
         if return_features:
-            out["features"] = feature_maps, features_cls 
+            out["features"] = feature_maps
         if return_loss: 
-            if self.cfg.deep_supervision and not cls_only:
+            if self.cfg.deep_supervision:
                 # TODO: figure out deep supervision with combined segmentation/classification loss
                 level1 = self.aux_segmentation_head1(decoder_output[-2])
                 level2 = self.aux_segmentation_head2(decoder_output[-3])

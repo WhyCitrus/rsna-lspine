@@ -1,4 +1,49 @@
-ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_foramen_dist_coord_proba_weighted_sampling/686596b9/fold0/checkpoints/last.ckpt foramen_dist_coord_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_sagittal_t1_foramina_slice_dist_level_seq_224/80ea43f3/fold0/checkpoints/last.ckpt foramen_localizer_cls_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_sagittal_t1_foramina_slice_dist_level_seq_224/5a9a6247/fold1/checkpoints/last.ckpt foramen_localizer_cls_fold1.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_sagittal_t1_regression/ff15f163/fold0/checkpoints/last.ckpt foramen_localizer_reg_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_sagittal_t1_regression/9c2f785b/fold1/checkpoints/last.ckpt foramen_localizer_reg_fold1.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_foramen_crops_bb_bce_gt/9959fb0d/fold0/checkpoints/last.ckpt foramen_stenosis_maxvit_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_foramen_crops_bb_bce_gt/cf176198/fold1/checkpoints/last.ckpt foramen_stenosis_csn_r101_fold1.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_foramen_crops_bb_bce_gt_attn_pool/da6f40fe/fold2/checkpoints/last.ckpt foramen_stenosis_coatnet_pool_fold2.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_foramen_crops_bb_bce_gt_attn_pool/e9948ecd/fold3/checkpoints/last.ckpt foramen_stenosis_maxvit_pool_fold3.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_sagittal_t2_spinal_slice_dist_level_seq/9d30339d/fold0/checkpoints/last.ckpt spinal_sag_localizer_cls_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_sagittal_t2_spinal_slice_dist_level_seq/0995118d/fold1/checkpoints/last.ckpt spinal_sag_localizer_cls_fold1.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_sagittal_t2_regression/a3a3c358/fold0/checkpoints/last.ckpt spinal_sag_localizer_reg_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_sagittal_t2_regression/e087b1fa/fold1/checkpoints/last.ckpt spinal_sag_localizer_reg_fold1.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_spinal_crops_gt_half/d31de783/fold0/checkpoints/last.ckpt spinal_sag_stenosis_maxvit_all_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_spinal_crops_gt_half/350bccf4/fold1/checkpoints/last.ckpt spinal_sag_stenosis_tinyvit_all_fold1.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_spinal_crops_gt_half/f8c2b44c/fold2/checkpoints/last.ckpt spinal_sag_stenosis_csn_r101_all_fold2.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_spinal_crops_gt_half_attn_pool/3822b1a2/fold3/checkpoints/last.ckpt spinal_sag_stenosis_maxvit_pool_all_fold3.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_spinal_crops_gt_half_attn_pool/a48e0bd8/fold4/checkpoints/last.ckpt spinal_sag_stenosis_effnet_pool_all_fold4.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_axial_subarticular_slice_dist_level_seq/aad4bdb2/fold0/checkpoints/last.ckpt ax_localizer_cls_old_resnet_fold0.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_axial_subarticular_slice_dist_level_seq_v2/74c5674f/fold0/checkpoints/last.ckpt ax_localizer_cls_resnet_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_axial_subarticular_slice_dist_level_seq_v2/9d527e53/fold1/checkpoints/last.ckpt ax_localizer_cls_tinynet_fold1.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_axial_subarticular_slice_dist_level_seq_v2/353cee4a/fold2/checkpoints/last.ckpt ax_localizer_cls_mobilenet_fold2.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_axial_t2_regression/6ef23402/fold0/checkpoints/last.ckpt ax_localizer_reg_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_axial_t2_regression/11868869/fold1/checkpoints/last.ckpt ax_localizer_reg_fold1.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_subarticular_crops_bb_bce_gt/2f2aca2d/fold0/checkpoints/last.ckpt subarticular_stenosis_nfnet_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_subarticular_crops_bb_bce_gt/aba0bec7/fold1/checkpoints/last.ckpt subarticular_stenosis_csn_r101_fold1.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_subarticular_crops_bb_bce_gt_attn_pool/ab9b856a/fold2/checkpoints/last.ckpt subarticular_stenosis_maxvit_pool_fold2.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_subarticular_crops_bb_bce_gt_attn_pool/58d305ea/fold3/checkpoints/last.ckpt subarticular_stenosis_coatnet_pool_fold3.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_subarticular_crops_bb_bce_gt_attn_pool/70e2dc0b/fold4/checkpoints/last.ckpt subarticular_stenosis_effnet_pool_fold4.pt
+
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_axial_spinal_crops_bb_bce_gt/8aa3ac05/fold0/checkpoints/last.ckpt spinal_ax_stenosis_maxvit_fold0.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_axial_spinal_crops_bb_bce_gt/d51d9c48/fold1/checkpoints/last.ckpt spinal_ax_stenosis_coatnet_fold1.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_axial_spinal_crops_bb_bce_gt/a36ef44a/fold2/checkpoints/last.ckpt spinal_ax_stenosis_tinyvit_fold2.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_axial_spinal_crops_bb_bce_gt/33941693/fold3/checkpoints/last.ckpt spinal_ax_stenosis_csn_r101_fold3.pt
+ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv5_axial_spinal_crops_bb_bce_gt_attn_pool/89f962aa/fold4/checkpoints/last.ckpt spinal_ax_stenosis_coatnet_pool_fold4.pt
+
+
+
 ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_spinal_dist_coord_proba_weighted_sampling/fd93b308/fold0/checkpoints/last.ckpt spinal_dist_coord_fold0.pt
 ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_subarticular_dist_coord_proba_weighted_sampling/2aee0da5/fold0/checkpoints/last.ckpt subarticular_dist_coord_effnet_fold0.pt
 ln -s /home/ian/projects/rsna-lspine/skp/experiments/cfg000_subarticular_dist_coord_proba_weighted_sampling/966a10b7/fold0/checkpoints/last.ckpt subarticular_dist_coord_mixnet_fold0.pt

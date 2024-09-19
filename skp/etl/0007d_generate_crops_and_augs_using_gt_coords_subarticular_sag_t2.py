@@ -65,10 +65,8 @@ for row in tqdm(coords_df.itertuples(), total=len(coords_df)):
 	for xi in xs:
 		for yi in ys:
 			crops.append(crop_square_around_center(img, xi, yi, size_factor=0.15))
-	condition = get_condition(row.condition)
-	laterality = "" if condition == "spinal" else row.condition[:1]
 	level = f"{row.condition[:1]}_{row.level.replace('/', '_')}" if laterality != "" else row.level.replace('/', '_')
-	save_files = [os.path.join(save_dir, condition, f"{row.study_id}_{row.series_id}_{level}_INST{row.instance_number:06d}_{aug_idx:03d}.png") for aug_idx in range(len(crops))]
+	save_files = [os.path.join(save_dir, f"{row.study_id}_{row.series_id}_{level}_INST{row.instance_number:06d}_{aug_idx:03d}.png") for aug_idx in range(len(crops))]
 	os.makedirs(os.path.dirname(save_files[0]), exist_ok=True)
 	for each_crop, each_save_file in zip(crops, save_files):
 		try:

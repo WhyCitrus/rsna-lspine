@@ -12,10 +12,10 @@ cfg.project = "gradientecho/rsna-lspine"
 
 cfg.task = "classification_multiaug"
 
-cfg.model = "net_2d"
+cfg.model = "net_2d_attn"
 cfg.backbone = "tf_efficientnetv2_s"
 cfg.pretrained = True
-cfg.num_input_channels = 3
+cfg.num_input_channels = 1
 cfg.pool = "gem"
 cfg.pool_params = dict(p=3)
 cfg.dropout = 0.5

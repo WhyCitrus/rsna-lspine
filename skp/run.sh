@@ -1,4 +1,4 @@
-python train.py cfg_idh_from_brats_x3d_unet --sync_batchnorm --benchmark --neptune_mode offline --num_workers 8 --devices 1 --fold 1
+python train.py cfg0000_simple_classifier --sync_batchnorm --benchmark --neptune_mode debug --fold 0 --num_workers 8 --devices 1 --fold 1
 python train.py cfg_idh_from_brats_x3d_unet --sync_batchnorm --benchmark --neptune_mode offline --num_workers 8 --devices 1 --fold 2
 python train.py cfg_idh_from_brats_x3d_unet --sync_batchnorm --benchmark --neptune_mode offline --num_workers 8 --devices 1 --fold 3
 python train.py cfg_idh_from_brats_x3d_unet --sync_batchnorm --benchmark --neptune_mode offline --num_workers 8 --devices 1 --fold 4
@@ -39,10 +39,10 @@ ts --gpus 2 python train.py cfg_head_ct_age_2d_5stack_top25 --sync_batchnorm --b
 
 
 
-ts --gpus 2 python train.py cfg000_foramen_dist_coord_bce_upsample_hard --sync_batchnorm --benchmark --fold 1
-ts --gpus 2 python train.py cfg000_foramen_dist_coord_bce_upsample_hard --sync_batchnorm --benchmark --fold 2
-ts --gpus 2 python train.py cfg000_foramen_dist_coord_bce_upsample_hard --sync_batchnorm --benchmark --fold 3
-ts --gpus 2 python train.py cfg000_foramen_dist_coord_bce_upsample_hard --sync_batchnorm --benchmark --fold 4
+ts --gpus 2 python train.py cfg000_sagittal_t2_seg --sync_batchnorm --benchmark --fold 1
+ts --gpus 2 python train.py cfg000_sagittal_t2_seg --sync_batchnorm --benchmark --fold 2
+ts --gpus 2 python train.py cfg000_sagittal_t2_seg --sync_batchnorm --benchmark --fold 3
+ts --gpus 2 python train.py cfg000_sagittal_t2_seg --sync_batchnorm --benchmark --fold 4
 
 
 ts --gpus 2 python train.py cfg000_subarticular_dist_coord_proba_weighted_sampling --sync_batchnorm --benchmark --fold 0 --backbone resnet200d

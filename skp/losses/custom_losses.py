@@ -19,6 +19,22 @@ class MaskedBCEWithLogitsSeq(nn.BCEWithLogitsLoss):
         return loss.mean()
 
 
+class BCESegCls(nn.Module):
+
+    def forward_seg(self, p, t):
+        return {"seg_loss": F.binary_cross_entropy_with_logits(p.float(), t.float())}
+
+    def forward_cls(self, p, t):
+        return {"cls_loss": F.binary_cross_entropy_with_logits(p.float(), t.float())}
+
+    def forward(self, p_seg, t_seg, p_cls, t_cls):
+        loss_dict = {}
+        loss_dict.update(self.forward_seg(p_seg, t_seg))
+        loss_dict.update(self.forward_cls(p_cls, t_cls))
+        loss_dict["loss"] = loss_dict["seg_loss"] + loss_dict["cls_loss"]
+        return loss_dict
+
+
 class BCEPlusCoords(nn.BCEWithLogitsLoss):
 
     def forward(self, p, t):
