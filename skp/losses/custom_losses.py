@@ -106,6 +106,44 @@ class SampleWeightedLogLossV2(nn.BCEWithLogitsLoss):
         return loss
 
 
+class SmoothSampleWeightedLogLoss(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        t_copy = t.clone()
+        w = torch.ones((len(p), ))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        # Mild 
+        t_copy[w == 1, 0] -= 0.025
+        t_copy[w == 1, 1] += 0.025
+        # Moderate
+        t_copy[w == 2, 0] += 0.025
+        t_copy[w == 2, 1] -= 0.05
+        t_copy[w == 2, 2] += 0.025
+        # Severe 
+        t_copy[w == 4, 1] += 0.025
+        t_copy[w == 4, 2] -= 0.025
+        w = w.unsqueeze(1)
+        loss = (F.binary_cross_entropy_with_logits(p.float(), t_copy.float(), reduction="none") * w.float().to(p.device)).mean()
+        return loss
+
+
+class SampleWeightedLogLossAuxRegression(nn.BCEWithLogitsLoss):
+
+    def forward(self, p, t):
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        p_cls = p[:, :3]
+        p_reg = p[:, 3]
+        t_reg = torch.argmax(t, dim=1)
+        assert p_reg.shape == t_reg.shape, f"p_reg.shape is {p_reg.shape} while t_reg.shape is {t_reg.shape}"
+        loss = (F.binary_cross_entropy_with_logits(p_cls.float(), t.float(), reduction="none") * w.float().to(p.device)).mean()
+        reg_loss = (F.l1_loss(p_reg.float(), t_reg.float(), reduction="none") + F.mse_loss(p_reg.float(), t_reg.float(), reduction="none")) * w.squeeze(1).float().to(p.device)
+        reg_loss = reg_loss.mean()
+        return loss + 0.1 * reg_loss
+
+
 class SampledWeightedBCEWithValidSlice(nn.Module):
 
     def forward(self, p, t):
@@ -120,9 +158,57 @@ class SampledWeightedBCEWithValidSlice(nn.Module):
         return loss1 + loss2
 
 
+class SampledWeightedBCEWithValidSliceWithMask(nn.Module):
+
+    def forward(self, p, t, mask):
+        p, t = p[~mask], t[~mask]
+        p, pv = p[:, :3], p[:, 3]
+        t, tv = t[:, :3], t[:, 3]
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        w = w.to(p.device)
+        loss1 = (F.binary_cross_entropy_with_logits(p[tv > 0].float(), t[tv > 0].float(), reduction="none") * w[tv > 0].float()).mean()
+        loss2 = F.binary_cross_entropy_with_logits(pv.float(), tv.float())
+        return loss1 + loss2
+
+
+class SampledWeightedBCEWithValidSliceWithMaskV2(nn.Module):
+
+    def forward(self, p, t, mask):
+        p, t = p[~mask], t[~mask]
+        p, pv = p[:, :3], p[:, 3]
+        t, tv = t[:, :3], t[:, 3]
+        w = torch.ones((len(p), 1))
+        t_copy = t.clone()
+        t_copy[tv == 0] = 0.
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        w = w.to(p.device)
+        loss1 = (F.binary_cross_entropy_with_logits(p.float(), t.float(), reduction="none", pos_weight=torch.tensor(10)) * w.float()).mean()
+        loss2 = F.binary_cross_entropy_with_logits(pv.float(), tv.float())
+        return loss1 + loss2
+
+
 class SampledWeightedCrossEntropyWithValidSlice(nn.Module):
 
     def forward(self, p, t):
+        p, pv = p[:, :3], p[:, 3]
+        t, tv = t[:, :3], t[:, 3]
+        w = torch.ones((len(p), 1))
+        w[t[:, 1] == 1] = 2
+        w[t[:, 2] == 1] = 4
+        w = w.to(p.device)
+        t = torch.argmax(t, dim=1)
+        loss1 = (F.cross_entropy(p[tv > 0].float(), t[tv > 0].long(), reduction="none") * w[tv > 0].float()).mean()
+        loss2 = F.binary_cross_entropy_with_logits(pv.float(), tv.float())
+        return loss1 + loss2
+
+
+class SampledWeightedCrossEntropyWithValidSliceWithMask(nn.Module):
+
+    def forward(self, p, t, mask):
+        p, t = p[~mask], t[~mask]
         p, pv = p[:, :3], p[:, 3]
         t, tv = t[:, :3], t[:, 3]
         w = torch.ones((len(p), 1))
@@ -416,6 +502,20 @@ class LevelForaminaDistSeq(nn.Module):
         t1, t2 = t[:, :, :10], t[:, :, 10:]
         assert p1.size(2) == t1.size(2) == 10
         assert p2.size(2) == t2.size(2) == 10
+        # BCE 
+        cls_loss = F.binary_cross_entropy_with_logits(p1.float(), t1.float(), reduction="none")[~mask].mean()
+        # L1
+        dist_loss = F.smooth_l1_loss(p2.float(), t2.float(), reduction="none")[~mask].mean()
+        return {"loss": cls_loss + dist_loss, "cls_loss": cls_loss, "dist_loss": dist_loss}
+
+
+class LevelAgnosticForaminaDistSeq(nn.Module):
+
+    def forward(self, p, t, mask):
+        p1, p2 = p[:, :, :2], p[:, :, 2:]
+        t1, t2 = t[:, :, :2], t[:, :, 2:]
+        assert p1.size(2) == t1.size(2) ==2
+        assert p2.size(2) == t2.size(2) ==2
         # BCE 
         cls_loss = F.binary_cross_entropy_with_logits(p1.float(), t1.float(), reduction="none")[~mask].mean()
         # L1

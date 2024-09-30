@@ -70,7 +70,25 @@ class Task(pl.LightningModule):
             if "loss" in k:
                 self.val_loss[k].append(v)
         for m in self.metrics:
-            m.update(out.get("logits", None), batch.get("y", None), batch.get("unique_id", None))
+            if self.cfg.model == "all_levels_net_2d":
+                unique_ids = batch["unique_id"]
+                unique_ids = [_[i] for i in range(len(unique_ids[0])) for _ in unique_ids]
+                unique_ids = torch.tensor(unique_ids, device=unique_ids[0].device)
+                y = batch["y"]
+                y = y.reshape(len(y) * 5, -1)
+                m.update(out.get("logits", None), y, unique_ids)
+            elif self.cfg.model == "net_2d_all_slices_seq":
+                logits = out["logits"]
+                sz = len(logits)
+                y = batch["y"].reshape(sz, -1)
+                mask = out["mask"].reshape(sz)
+                unique_ids = batch["unique_id"].reshape(sz)
+                logits = logits[~mask]
+                y = y[~mask]
+                unique_ids = unique_ids[~mask]
+                m.update(logits, y, unique_ids)
+            else:
+                m.update(out.get("logits", None), batch.get("y", None), batch.get("unique_id", None))
         return out["loss"]
 
     def on_validation_epoch_end(self, *args, **kwargs):

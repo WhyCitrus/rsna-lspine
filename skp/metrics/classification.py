@@ -190,6 +190,27 @@ class AUROCDistSeq2(_BaseMetric):
         return metrics_dict
 
 
+class AUROCDistSeq3(_BaseMetric):
+
+    def compute(self):
+        # use batch_size 1
+        p = torch.cat([_[0] for _ in self.p], dim=0).cpu()
+        t = torch.cat([_[0] for _ in self.t], dim=0).cpu().numpy()
+        p1, p2 = p.sigmoid().numpy()[:, :2], p.numpy()[:, 2:]
+        t1, t2 = t[:, :2], t[:, 2:]
+        metrics_dict = {}
+        for c in range(p1.shape[1]):
+            # Depends on whether it is multilabel or multiclass
+            # If multiclass using CE loss, p.shape[1] = num_classes and t.shape[1] = 1
+            tmp_gt = t1 == c if t1.shape[1] != p1.shape[1] else t1[:, c]
+            metrics_dict[f"auc{c}"] = _roc_auc_score(tmp_gt, p1[:, c])
+        metrics_dict["auc_mean"] = np.mean([v for v in metrics_dict.values()])
+        for c in range(p2.shape[1]):
+            metrics_dict[f"dist{c}"] = np.mean(np.abs(p2[:, c] - t2[:, c]))
+        metrics_dict["dist_mean"] = np.mean([v for k, v in metrics_dict.items() if "dist" in k])
+        return metrics_dict
+
+
 class AVP(_ScoreBased):
 
     name = "avp"
@@ -472,8 +493,8 @@ class CompetitionMetricPlusAUROCMultiAugSigmoid(tm.Metric):
         self.unique_id.append(unique_id)
 
     def compute(self):
-        p = torch.cat(self.p).sigmoid().cpu().float().numpy()
-        t = torch.cat(self.t).cpu().numpy()
+        p = torch.cat(self.p).sigmoid().cpu().float().numpy()[:, :3]
+        t = torch.cat(self.t).cpu().numpy()[:, :3]
         wts = np.ones((len(p), ))
         wts[t[:, 1] == 1] = 2
         wts[t[:, 2] == 1] = 4
@@ -523,8 +544,8 @@ class CompetitionMetricPlusAUROCMultiAugSigmoidValidSlice(tm.Metric):
     def compute(self):
         metrics_dict = {}
         p = torch.cat(self.p).sigmoid().cpu().float().numpy()
-        t = torch.cat(self.t).cpu().numpy()
-        ids = torch.cat(self.unique_id).cpu().numpy()
+        t = torch.cat(self.t).cpu().reshape(p.shape[0], -1).numpy()
+        ids = torch.cat(self.unique_id).cpu().reshape(p.shape[0]).numpy()
         p, pv = p[:, :3], p[:, 3]
         t, tv = t[:, :3], t[:, 3]
         metrics_dict["auc_valid_slice"] = _roc_auc_score(t=(tv > 0).astype("int"), p=pv)
@@ -820,6 +841,7 @@ class CompetitionMetricPlusAUROCMultiAugSigmoidSpinalSubarticular(tm.Metric):
         subart_metrics = self.compute_subarticular()
         subart_metrics.update(self.compute_spinal())
         subart_metrics["loss_median"] = (subart_metrics["loss_median_subart"] + subart_metrics["loss_median_spinal"]) / 2
+        subart_metrics["loss_mean"] = (subart_metrics["loss_mean_subart"] + subart_metrics["loss_mean_spinal"]) / 2
         return subart_metrics
 
 

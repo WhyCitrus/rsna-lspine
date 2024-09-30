@@ -507,3 +507,13 @@ ensemble     : 0.2569
 ANY SEVERE SPINAL
 ensemble     : 0.2513
 combined     : 0.5081
+
+(0.4747 + 0.5392 + 0.2569 + 0.2513) / 4.0 = 0.3805 CV, 0.35 LB
+
+Foraminal:         0.4747
+Subarticular:      0.5392
+Spinal:            0.2569
+Any Severe Spinal: 0.2513
+
+CV Average:        0.3805
+LB:                0.35

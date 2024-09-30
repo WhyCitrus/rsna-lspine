@@ -61,3 +61,45 @@ df = df.merge(train_df.loc[train_df.condition == "subarticular"], on=["study_id"
 df.to_csv("../../data/train_gt_sag_subarticular_gt_kfold.csv", index=False)
 
 
+import glob
+import os
+import pandas as pd
+
+
+folds_df = pd.read_csv("../../data/folds_cv5.csv")
+train_df = pd.read_csv("../../data/train_narrow.csv")
+
+images = glob.glob(os.path.join("../../data/train_sagittal_t2_foramina_crops_with_augs_from_gt/", "*"))
+df = pd.DataFrame({"filepath": images})
+df["filepath"] = df.filepath.map(os.path.basename)
+df["study_id"] = df.filepath.apply(lambda x: x.split("_")[0]).astype("int")
+df["level"] = df.filepath.apply(lambda x: "_".join(x.split("_")[-4:-2]))
+df["laterality"] = df.filepath.apply(lambda x: x.split("_")[2])
+df = df.merge(folds_df, on="study_id")
+df = df.merge(train_df.loc[train_df.condition == "foraminal"], on=["study_id", "level", "laterality"])
+df["study_level_laterality"] = df.study_id.astype("str") + "_" + df.level + "_" + df.laterality
+df["unique_id"] = pd.Categorical(df.study_level_laterality).codes
+
+df.to_csv("../../data/train_gt_sag_t2_foraminal_kfold.csv", index=False)
+
+
+import glob
+import os
+import pandas as pd
+
+
+folds_df = pd.read_csv("../../data/folds_cv5.csv")
+train_df = pd.read_csv("../../data/train_narrow.csv")
+
+images = glob.glob(os.path.join("../../data/train_axial_foraminal_crops_gt_with_augs/", "*"))
+df = pd.DataFrame({"filepath": images})
+df["filepath"] = df.filepath.map(os.path.basename)
+df["study_id"] = df.filepath.apply(lambda x: x.split("_")[0]).astype("int")
+df["level"] = df.filepath.apply(lambda x: "_".join(x.split("_")[-4:-2]))
+df["laterality"] = df.filepath.apply(lambda x: x.split("_")[2])
+df = df.merge(folds_df, on="study_id")
+df = df.merge(train_df.loc[train_df.condition == "foraminal"], on=["study_id", "level", "laterality"])
+df["study_level_laterality"] = df.study_id.astype("str") + "_" + df.level + "_" + df.laterality
+df["unique_id"] = pd.Categorical(df.study_level_laterality).codes
+
+df.to_csv("../../data/train_gt_axial_foraminal_kfold.csv", index=False)
