@@ -12,48 +12,38 @@ cfg.project = "gradientecho/rsna-lspine"
 
 cfg.task = "classification_multiaug"
 
-cfg.model = "all_levels_net_2d"
-cfg.backbone = "maxvit_tiny_tf_512"
+cfg.model = "net_2d_clam"
+cfg.backbone = "tf_efficientnetv2_s"
 cfg.pretrained = True
-cfg.num_input_channels = 3
+cfg.num_input_channels = 1
 cfg.pool = "gem"
 cfg.pool_params = dict(p=3)
 cfg.dropout = 0.5
 cfg.num_classes = 3
-cfg.transformer_nhead = 16
-cfg.expansion_factor = 1
-cfg.transformer_dropout = 0.1
-cfg.transformer_activation = "gelu"
-cfg.transformer_num_layers = 2
-cfg.freeze_backbone = True
-cfg.load_pretrained_backbone = "/home/ian/projects/rsna-lspine/skp/experiments/cfg000_genv4_foramen_crops_bb_bce_gt/9959fb0d/fold0/checkpoints/last.ckpt"
 
 cfg.normalization = "-1_1"
 cfg.normalization_params = {"min": 0, "max": 255}
 
 cfg.fold = 0 
-cfg.dataset = "all_levels_multiaug"
-cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_crops_gt_with_augs/foraminal/"
-cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_gt_foraminal_with_augs_all_levels_kfold.csv"
-cfg.inputs = "filepath"
-grades = ["normal_mild", "moderate", "severe"]
-cfg.targets = []
-for lvl in ["l1_l2", "l2_l3", "l3_l4", "l4_l5", "l5_s1"]:
-    for g in grades:
-        cfg.targets.append(f"{g}_{lvl}")
-cfg.cv2_load_flag = cv2.IMREAD_COLOR
+cfg.dataset = "simple_2dc_multiaug"
+cfg.data_dir = "/home/ian/projects/rsna-lspine/data/train_crops_from_gt_coords_5_slices/foraminal/"
+cfg.annotations_file = "/home/ian/projects/rsna-lspine/data/train_crops_noise_reduce_085_foramen_5ch.csv"
+cfg.inputs = "folder"
+cfg.targets = ["normal_mild", "moderate", "severe"]
+cfg.cv2_load_flag = cv2.IMREAD_GRAYSCALE
 cfg.num_workers = 14
 cfg.pin_memory = True
+cfg.channel_reverse = True
 cfg.sampler = "IterationBasedSampler"
 cfg.num_iterations_per_epoch = 1000
-cfg.backbone_img_size = True
+cfg.backbone_img_size = False
 cfg.convert_to_3d = False
 
 cfg.loss = "SampleWeightedLogLossV2"
 cfg.loss_params = {}
 
-cfg.batch_size = 16
-cfg.num_epochs = 10
+cfg.batch_size = 32
+cfg.num_epochs = 7
 cfg.optimizer = "AdamW"
 cfg.optimizer_params = {"lr": 3e-4}
 
@@ -62,7 +52,7 @@ cfg.scheduler_params = {"eta_min": 0}
 cfg.scheduler_interval = "step"
 
 cfg.val_batch_size = cfg.batch_size * 2
-cfg.metrics = ["CompetitionMetricPlusAUROCMultiAug"]
+cfg.metrics = ["CompetitionMetricPlusAUROCMultiAugSigmoid"]
 cfg.val_metric = "loss_mean"
 cfg.val_track = "min"
 
@@ -71,7 +61,7 @@ cfg.val_track = "min"
 cfg.image_height = 64
 cfg.image_width = 64
 
-additional_targets = {f"image{idx}": "image" for idx in range(1, 5)}
+additional_targets = {f"image{idx}": "image" for idx in range(1, 10)}
 
 cfg.train_transforms = A.Compose([
     A.Resize(cfg.image_height, cfg.image_width, p=1),
@@ -92,6 +82,6 @@ cfg.train_transforms = A.Compose([
         #                 min_holes=2, max_holes=8, fill_value=0, p=1),
 
     ], n=3, p=0.95, replace=False)
-], additional_targets=additional_targets, is_check_shapes=False)
+], additional_targets=additional_targets)
 
-cfg.val_transforms = A.Compose([A.Resize(cfg.image_height, cfg.image_width, p=1)], additional_targets=additional_targets, is_check_shapes=False)
+cfg.val_transforms = A.Compose([A.Resize(cfg.image_height, cfg.image_width, p=1)], additional_targets=additional_targets)

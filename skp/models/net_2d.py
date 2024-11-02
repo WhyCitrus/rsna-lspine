@@ -40,7 +40,7 @@ class Net(nn.Module):
                 backbone_args["img_size"] = (self.cfg.image_height, self.cfg.image_width)
         self.backbone = create_model(self.cfg.backbone, 
             **backbone_args)
-        self.dim_feats = self.backbone(torch.randn((2, self.cfg.num_input_channels, self.cfg.image_height, self.cfg.image_width))).size(1)
+        self.dim_feats = self.backbone(torch.randn((2, self.cfg.num_input_channels, self.cfg.image_height, self.cfg.image_width))).size(-1 if "xcit" in self.cfg.backbone else 1)
         self.dim_feats = self.dim_feats * (2 if self.cfg.pool == "catavgmax" else 1)
         self.pooling = self.get_pool_layer()
 
@@ -106,7 +106,10 @@ class Net(nn.Module):
 
         x = self.normalize(x) 
 
-        features = self.pooling(self.backbone(x)) 
+        if self.cfg.pool != "none":
+            features = self.pooling(self.backbone(x)) 
+        else:
+            features = self.backbone(x).mean(1)
 
         if hasattr(self, "feat_reduce"):
             features = self.feat_reduce(features.unsqueeze(-1)).squeeze(-1) 

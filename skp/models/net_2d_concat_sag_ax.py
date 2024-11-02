@@ -21,36 +21,6 @@ class GeM(nn.Module):
         return self.flatten(x)
 
 
-class GatedAttentionModule(nn.Module):
-
-    def __init__(self, emb_dim, attn_dim, num_classes, attn_dropout=0.25):
-        super().__init__()
-
-        # Attention
-        self.attn_a = nn.Sequential(
-            nn.Linear(emb_dim, attn_dim),
-            nn.Tanh(),
-            nn.Dropout(attn_dropout)
-        )
-        self.attn_b = nn.Sequential(
-            nn.Linear(emb_dim, attn_dim),
-            nn.Sigmoid(),
-            nn.Dropout(attn_dropout)
-        )
-        self.attn = nn.Sequential(
-            nn.Linear(attn_dim, num_classes),
-        )
-
-    def forward(self, x):
-        a = self.attn_a(x)
-        b = self.attn_b(x)
-        A = a.mul(b)
-        A = self.attn(A)
-        A = torch.softmax(A, dim=1)
-        h = A.transpose(2, 1).bmm(x)
-        return h, A
-
-
 class Net(nn.Module):
 
     def __init__(self, cfg):
@@ -70,10 +40,9 @@ class Net(nn.Module):
                 backbone_args["img_size"] = (self.cfg.image_height, self.cfg.image_width)
         self.backbone = create_model(self.cfg.backbone, 
             **backbone_args)
-        self.dim_feats = self.backbone(torch.randn((2, self.cfg.num_input_channels, self.cfg.image_height, self.cfg.image_width))).size(-1 if "xcit" in self.cfg.backbone else 1)
+        self.dim_feats = self.backbone(torch.randn((2, self.cfg.num_input_channels, self.cfg.image_height, self.cfg.image_width))).size(1)
         self.dim_feats = self.dim_feats * (2 if self.cfg.pool == "catavgmax" else 1)
-        if self.cfg.pool != "none":
-            self.pooling = self.get_pool_layer()
+        self.pooling = self.get_pool_layer()
 
         if isinstance(self.cfg.reduce_feat_dim, int):
             # Use 1D grouped convolution to reduce # of parameters
@@ -82,9 +51,8 @@ class Net(nn.Module):
                                          stride=1, bias=False)
             self.dim_feats = self.cfg.reduce_feat_dim
 
-        self.attn = GatedAttentionModule(self.dim_feats, self.dim_feats or self.cfg.attn_dim, self.cfg.num_classes, self.cfg.attn_dropout or 0.25)
         self.dropout = nn.Dropout(p=self.cfg.dropout) 
-        self.linears = nn.ModuleList([nn.Linear(self.dim_feats, 1) for _ in range(self.cfg.num_classes)])
+        self.linear = nn.Linear(self.dim_feats * 2, self.cfg.num_classes)
 
         if self.cfg.load_pretrained_backbone:
             print(f"Loading pretrained backbone from {self.cfg.load_pretrained_backbone} ...")
@@ -130,29 +98,27 @@ class Net(nn.Module):
         return x 
 
     def forward(self, batch, return_loss=False, return_features=False):
-        x = batch["x"]
+        x1 = batch["x1"]
+        x2 = batch["x2"]
         y = batch["y"] if "y" in batch else None
 
         if return_loss:
             assert isinstance(y, torch.Tensor)
 
-        x = self.normalize(x) 
-        # x.shape = (B, C, H, W)
-        B, C, H, W = x.shape
-        x = x.reshape(B*C, 1, H, W)
+        x1 = self.normalize(x1) 
+        x2 = self.normalize(x2)
 
-        if self.cfg.pool != "none":
-            features = self.pooling(self.backbone(x)) 
-        else:
-            features = self.backbone(x).mean(1)
-            
-        features = features.reshape(B, C, -1)
-        features, attn_weights = self.attn(features)
+        features1 = self.pooling(self.backbone(x1)) 
+        features2 = self.pooling(self.backbone(x2)) 
+        features = torch.cat([features1, features2], dim=1)
 
         if hasattr(self, "feat_reduce"):
             features = self.feat_reduce(features.unsqueeze(-1)).squeeze(-1) 
 
-        logits = torch.cat([self.linears[c](features[:, c]) for c in range(self.cfg.num_classes)], dim=1)
+        if self.cfg.multisample_dropout:
+            logits = torch.mean(torch.stack([self.linear(self.dropout(features)) for _ in range(5)]), dim=0)
+        else:
+            logits = self.linear(self.dropout(features))
 
         out = {"logits": logits}
         if return_features:

@@ -517,3 +517,21 @@ Any Severe Spinal: 0.2513
 
 CV Average:        0.3805
 LB:                0.35
+
+
+SUBARTICULAR
+coatnet_clam    : 0.5548
+csn_r101        : 0.5479
+maxvit_clam     : 0.5549
+nfnet           : 0.5502
+nfnet_clam      : 0.5574
+xcit_clam       : 0.5533
+ensemble_all    : 0.5366
+ensemble_top    : 0.5361 ["nfnet", "csn_r101", "xcit_clam", "maxvit_clam"]
+
+Foraminal:         0.4747
+Subarticular:      0.5361
+Spinal:            0.2569
+Any Severe Spinal: 0.2513
+
+CV Average:        0.37975

@@ -43,7 +43,7 @@ cfg.loss = "SampleWeightedLogLossV2"
 cfg.loss_params = {}
 
 cfg.batch_size = 32
-cfg.num_epochs = 10
+cfg.num_epochs = 7
 cfg.optimizer = "AdamW"
 cfg.optimizer_params = {"lr": 3e-4}
 
